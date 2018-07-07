@@ -48,20 +48,18 @@ func TestS1C4(t *testing.T) {
 	scanner := bufio.NewScanner(file)
 	lines := make([][]byte, 0)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Bytes())
+		next, _ := hex.DecodeString(string(scanner.Bytes()))
+		lines = append(lines, next)
 	}
 	all := make([][]byte, len(lines)*256)
 	for i := 0; i < 256; i++ {
 		for j, bytes := range lines {
 			ar := [1]byte{byte(i)}
-			all[i*256+j] = xor(bytes, ar[:])
+			all[j*256+i] = xor(bytes, ar[:])
 		}
 	}
-	ans, score := minScore(all)
-	log.Println(string(ans))
-	log.Println(score)
-	log.Println(len(ef))
-	if len(ans) < 0 {
-		t.Errorf("s1c4 failed: output is %v", ans)
+	ans, _ := minScore(all)
+	if string(ans) != "Now that the party is jumping\n" {
+		t.Errorf("s1c4 failed: output is %s", ans)
 	}
 }
