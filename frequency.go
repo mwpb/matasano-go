@@ -2,110 +2,51 @@ package cryptopals
 
 import (
 	"math"
-	"strings"
-	"unicode"
 )
 
-func get_frequency(plaintext string) map[string]int {
-	n := len(plaintext)
-	plaintext = strings.ToLower(plaintext)
-	actual_frequency := map[string]int{}
-	for i := 97; i < 123; i++ {
-		actual_frequency[string(i)] = 0
+func get_frequency(bytes []byte) (map[byte]int, int) {
+	actual_frequency := map[byte]int{}
+	for i := 0; i < 256; i++ {
+		actual_frequency[byte(i)] = 0
 	}
-	actual_frequency[" "] = 0
-	actual_frequency["other"] = 0
-	for _, r := range plaintext {
-		char := string(r)
-		if unicode.IsLetter(r) {
-			actual_frequency[char] += 1
-		} else if char == " " {
-			actual_frequency[" "] += 1
-		} else {
-			actual_frequency["other"] += 1
-		}
+	for _, r := range bytes {
+		actual_frequency[r] += 1
 	}
-	actual_frequency["len"] = n
-	return actual_frequency
+	return actual_frequency, len(bytes)
 }
 
-var expected_percentage = map[string]float64{
-	"a":     8.167,
-	"b":     1.492,
-	"c":     2.782,
-	"d":     4.253,
-	"e":     12.70,
-	"f":     2.228,
-	"g":     2.015,
-	"h":     6.094,
-	"i":     6.966,
-	"j":     0.153,
-	"k":     0.772,
-	"l":     4.025,
-	"m":     2.406,
-	"n":     6.749,
-	"o":     7.507,
-	"p":     1.929,
-	"q":     0.095,
-	"r":     5.987,
-	"s":     6.327,
-	"t":     9.056,
-	"u":     2.758,
-	"v":     0.978,
-	"w":     2.360,
-	"x":     0.150,
-	"y":     1.974,
-	"z":     0.074,
-	"other": 0.0,
-	// " ":     19.18182,
-}
+// calculation is in frequency-prep.csv
+var expected_percentage = map[byte]float64{32: 19.0, 65: 0.348992722, 66: 0.210528313, 67: 0.284925153, 68: 0.161034768, 69: 0.171980193, 70: 0.125157476, 71: 0.115792187, 72: 0.153581295, 73: 0.277408326, 74: 0.097772174, 75: 0.057863795, 76: 0.132900392, 77: 0.322330407, 78: 0.255168405, 79: 0.131305349, 80: 0.179180248, 81: 0.01448334, 82: 0.181924368, 83: 0.37884885, 84: 0.404303703, 85: 0.071414209, 86: 0.038575449, 87: 0.133162506, 88: 0.009413736, 89: 0.117140023, 9: 0.006968997, 97: 6.538905741, 98: 1.075978388, 99: 2.435312972, 100: 2.943898215, 101: 9.617268335, 102: 1.611099237, 103: 1.499076022, 104: 3.67190128, 105: 5.624057774, 106: 0.081809319, 107: 0.572411816, 108: 3.171641566, 109: 1.822841223, 110: 5.634260336, 111: 5.874909376, 112: 1.559737354, 113: 0.067355793, 114: 5.140348497, 115: 5.200300507, 116: 6.841905566, 117: 2.004143226, 118: 0.811645938, 119: 1.261694089, 120: 0.153512971, 121: 1.319314404, 122: 0.082513672}
 
-func sumMap(inMap map[string]float64) float64 {
-	currentTotal := 0.0
-	for k, v := range inMap {
-		if k != " " {
-			currentTotal = currentTotal + v
-		}
-	}
-	// log.Println(currentTotal)
-	return currentTotal
-}
-
-func score(plaintext string) float64 {
-	actual_frequencies := get_frequency(plaintext)
+func score(bytes []byte) float64 {
+	actual_frequencies, n := get_frequency(bytes)
 	score := 0.0
 	for s, percent := range expected_percentage {
-		actual := float64(actual_frequencies[s]) * 100.0 / float64(actual_frequencies["len"]-(actual_frequencies[" "]))
+		actual := float64(actual_frequencies[s]) * 100.0 / float64(n)
 		score = score + math.Pow(percent-actual, 2.0)
 	}
-	// log.Println(score)
 	return score
 }
 
-func scores(plaintexts map[byte]string) map[string]float64 {
-	scores := make(map[string]float64, 0)
-	for _, plaintext := range plaintexts {
-		scores[plaintext] = score(plaintext)
+func textscores(all [][]byte) ([][]byte, []float64) {
+	scores := make([]float64, len(all))
+	texts := make([][]byte, len(all))
+	for i, bytes := range all {
+		scores[i] = score(bytes)
+		texts[i] = bytes
 	}
-	return scores
+	return texts, scores
 }
 
-func minScore(plaintexts map[byte]string) (string, float64) {
-	scores := scores(plaintexts)
-	// log.Println(scores)
-	currentMinScore := -1.0
-	currentPlaintext := ""
-	for plaintext, score := range scores {
-		if currentMinScore == -1.0 {
+func minScore(all [][]byte) ([]byte, float64) {
+	texts, scores := textscores(all)
+	currentMinScore := scores[0]
+	currentBytes := texts[0]
+	for i, score := range scores {
+		if score < currentMinScore {
 			currentMinScore = score
-			currentPlaintext = plaintext
-			// log.Println(currentMinScore)
-		} else if score < currentMinScore {
-			currentMinScore = score
-			currentPlaintext = plaintext
-			// log.Println(currentMinScore)
+			currentBytes = texts[i]
 		}
 	}
-	// log.Println(currentPlaintext)
-	return currentPlaintext, currentMinScore
+	return currentBytes, currentMinScore
 }

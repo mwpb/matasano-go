@@ -1,33 +1,27 @@
 package cryptopals
 
 import (
-	"encoding/base64"
 	"encoding/hex"
-	"log"
+	"math"
 )
 
-func q1(hexes string) string {
-	bytes, _ := hex.DecodeString(hexes)
-	base64s := base64.StdEncoding.EncodeToString(bytes)
-	return base64s
-}
-
-func hexXOR(hexes1 string, hexes2 string) string {
-	bytes1, _ := hex.DecodeString(hexes1)
-	bytes2, _ := hex.DecodeString(hexes2)
-	xor := make([]byte, 0)
-	for i := 0; i < len(bytes1); i++ {
-		xor = append(xor, bytes1[i]^bytes2[i])
+func xor(bytes1 []byte, bytes2 []byte) []byte {
+	l1, l2 := float64(len(bytes1)), float64(len(bytes2))
+	n := int(math.Max(l1, l2))
+	xor := make([]byte, n)
+	for i := 0; i < n; i++ {
+		i1 := int(math.Mod(float64(i), l1))
+		i2 := int(math.Mod(float64(i), l2))
+		xor[i] = bytes1[i1] ^ bytes2[i2]
 	}
-	hex_xor := hex.EncodeToString(xor)
-	return hex_xor
+	return xor
 }
 
 func hexXORSingle(hexes string, r byte) string {
 	bytes, _ := hex.DecodeString(hexes)
 	xor := make([]byte, 0)
 	for i := 0; i < len(bytes); i++ {
-		log.Println(string(hexes[2*i]), string(hexes[2*i+1]), bytes[i], r, bytes[i]^r)
+		// log.Println(string(hexes[2*i]), string(hexes[2*i+1]), bytes[i], r, bytes[i]^r)
 		xor = append(xor, bytes[i]^r)
 	}
 	// log.Println(xor)
@@ -40,6 +34,6 @@ func hexXORAlpha(hexes string) map[byte]string {
 		xor := hexXORSingle(hexes, byte(i))
 		plaintexts[byte(i)] = xor
 	}
-	log.Println(plaintexts)
+	// log.Println(plaintexts)
 	return plaintexts
 }
