@@ -27,7 +27,7 @@ func score(bytes []byte) float64 {
 	return score
 }
 
-func textscores(all [][]byte) ([][]byte, []float64) {
+func textscores(all []Block) ([][]byte, []float64) {
 	scores := make([]float64, len(all))
 	texts := make([][]byte, len(all))
 	for i, bytes := range all {
@@ -37,14 +37,12 @@ func textscores(all [][]byte) ([][]byte, []float64) {
 	return texts, scores
 }
 
-func minScore(all [][]byte) ([]byte, float64) {
+func minScore(all []Block) ([]byte, float64) {
 	texts, scores := textscores(all)
 	currentMinScore := scores[0]
 	currentBytes := texts[0]
 	for i, score := range scores {
 		if score < currentMinScore {
-			// log.Println(currentMinScore)
-			// log.Println(string(currentBytes))
 			currentMinScore = score
 			currentBytes = texts[i]
 		}
