@@ -37,8 +37,7 @@ func TestS1C3(t *testing.T) {
 	currentScore := math.Inf(1)
 	currentPlain := []byte{}
 	for i := 0; i < 256; i++ {
-		ar := [1]byte{byte(i)}
-		plain := xor(block, ar[:])
+		plain := xor(block, []byte{byte(i)})
 		score := score(plain)
 		if score < currentScore {
 			currentScore = score
@@ -60,13 +59,13 @@ func TestS1C4(t *testing.T) {
 	for scanner.Scan() {
 		block, _ := hex.DecodeString(string(scanner.Bytes()))
 		for i := 0; i < 256; i++ {
-			ar := [1]byte{byte(i)}
-			plain := xor(block, ar[:])
+			ar := []byte{byte(i)}
+			plain := xor(block, ar)
 			score := score(plain)
 			if score < currentScore {
 				currentScore = score
 				currentPlain = plain
-				currentKey = ar[:]
+				currentKey = ar
 			}
 		}
 	}
