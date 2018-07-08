@@ -2,9 +2,11 @@ package cryptopals
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"log"
+	"math"
 	"os"
 	"testing"
 )
@@ -32,12 +34,18 @@ func TestS1C2(t *testing.T) {
 
 func TestS1C3(t *testing.T) {
 	block, _ := hex.DecodeString("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
-	all := make([]Block, 256)
+	currentScore := math.Inf(1)
+	currentPlain := []byte{}
 	for i := 0; i < 256; i++ {
 		ar := [1]byte{byte(i)}
-		all[i] = xor(block, ar[:])
+		plain := xor(block, ar[:])
+		score := score(plain)
+		if score < currentScore {
+			currentScore = score
+			currentPlain = plain
+		}
 	}
-	ans, _ := minScore(all)
+	ans := currentPlain
 	if string(ans) != "Cooking MC's like a pound of bacon" {
 		t.Errorf("s1c3 failed: output is %v", ans)
 	}
@@ -46,20 +54,24 @@ func TestS1C3(t *testing.T) {
 func TestS1C4(t *testing.T) {
 	file, _ := os.Open("4.txt")
 	scanner := bufio.NewScanner(file)
-	lines := make([]Block, 0)
+	currentScore := math.Inf(1)
+	currentPlain := []byte{}
+	currentKey := []byte{}
 	for scanner.Scan() {
-		next, _ := hex.DecodeString(string(scanner.Bytes()))
-		lines = append(lines, next)
-	}
-	all := make([]Block, len(lines)*256)
-	for i := 0; i < 256; i++ {
-		for j, block := range lines {
+		block, _ := hex.DecodeString(string(scanner.Bytes()))
+		for i := 0; i < 256; i++ {
 			ar := [1]byte{byte(i)}
-			all[j*256+i] = xor(block, ar[:])
+			plain := xor(block, ar[:])
+			score := score(plain)
+			if score < currentScore {
+				currentScore = score
+				currentPlain = plain
+				currentKey = ar[:]
+			}
 		}
 	}
-	ans, _ := minScore(all)
-	if string(ans) != "Now that the party is jumping\n" {
-		t.Errorf("s1c4 failed: output is %s", ans)
+	ans := currentPlain
+	if string(ans) != "Now that the party is jumping\n" && bytes.Compare(currentKey, []byte{53}) != 0 {
+		t.Errorf("s1c4 failed: output is %s and key is %s", ans, currentKey)
 	}
 }
