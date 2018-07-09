@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -81,5 +82,52 @@ func TestS1C5(t *testing.T) {
 	ans := hex.EncodeToString(xor)
 	if ans != "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f" {
 		t.Errorf("s1c5 failed: output is %s", ans)
+	}
+}
+
+func TestS1preC6(t *testing.T) {
+	block1 := []byte("this is a test")
+	block2 := []byte("wokka wokka!!!")
+	ans := hamming(block1, block2)
+	if ans != 37 {
+		t.Errorf("s1prec6 failed: output is %v", ans)
+	}
+}
+
+func TestS1C6(t *testing.T) {
+	block, _ := ioutil.ReadFile("6.txt")
+	dist1 := 0
+	dist2 := 0
+	dist3 := 0
+	hamm1 := math.Inf(1)
+	hamm2 := math.Inf(1)
+	hamm3 := math.Inf(1)
+	for i := 2; i < 41; i++ {
+		first := block[:i-1]
+		second := block[i-1 : 2*i-1]
+		log.Println(first, second)
+		hamm := float64(hamming(first, second)) / float64(i)
+		log.Println(hamm)
+		if hamm < hamm1 {
+			hamm3 = hamm2
+			dist3 = dist2
+			hamm2 = hamm1
+			dist2 = dist1
+			hamm1 = hamm
+			dist1 = i
+		} else if hamm < hamm2 {
+			hamm3 = hamm2
+			dist3 = dist2
+			hamm2 = hamm
+			dist2 = i
+		} else if hamm < hamm3 {
+			hamm3 = hamm
+			dist3 = i
+		}
+	}
+	log.Println(dist1, dist2, dist3)
+	ans := block
+	if len(ans) < 0 {
+		t.Errorf("s1prec6 failed: output is %v", ans)
 	}
 }

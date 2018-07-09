@@ -17,3 +17,31 @@ func xor(block1 Block, block2 Block) Block {
 	}
 	return xor
 }
+
+func byteHamming(byte1 byte, byte2 byte) int {
+	count := 0
+	for i := 0; i < 8; i++ {
+		power := byte(math.Pow(2.0, float64(i)))
+		if byte1&power != byte2&power {
+			count += 1
+		}
+	}
+	return count
+}
+
+func hamming(block1 Block, block2 Block) int {
+	n := int(math.Max(float64(len(block1)), float64(len(block2))))
+	count := 0
+	for i := 0; i < n; i++ {
+		bit1 := byte(0)
+		bit2 := byte(0)
+		if i < len(block1) {
+			bit1 = block1[i]
+		}
+		if i < len(block2) {
+			bit2 = block2[i]
+		}
+		count = count + byteHamming(bit1, bit2)
+	}
+	return count
+}
