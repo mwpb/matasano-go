@@ -2,7 +2,6 @@ package cryptopals
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"io/ioutil"
@@ -37,14 +36,8 @@ func TestS1C3(t *testing.T) {
 	block, _ := hex.DecodeString("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
 	currentScore := math.Inf(1)
 	currentPlain := []byte{}
-	for i := 0; i < 256; i++ {
-		plain := xor(block, []byte{byte(i)})
-		score := score(plain)
-		if score < currentScore {
-			currentScore = score
-			currentPlain = plain
-		}
-	}
+	currentKey := byte(0)
+	currentPlain, currentScore, currentKey = moreLikely(block, currentPlain, currentScore, currentKey)
 	ans := currentPlain
 	if string(ans) != "Cooking MC's like a pound of bacon" {
 		t.Errorf("s1c3 failed: output is %v", ans)
@@ -56,23 +49,14 @@ func TestS1C4(t *testing.T) {
 	scanner := bufio.NewScanner(file)
 	currentScore := math.Inf(1)
 	currentPlain := []byte{}
-	currentKey := []byte{}
+	currentKey := byte(0)
 	for scanner.Scan() {
 		block, _ := hex.DecodeString(string(scanner.Bytes()))
-		for i := 0; i < 256; i++ {
-			ar := []byte{byte(i)}
-			plain := xor(block, ar)
-			score := score(plain)
-			if score < currentScore {
-				currentScore = score
-				currentPlain = plain
-				currentKey = ar
-			}
-		}
+		currentPlain, currentScore, currentKey = moreLikely(block, currentPlain, currentScore, currentKey)
 	}
 	ans := currentPlain
-	if string(ans) != "Now that the party is jumping\n" && bytes.Compare(currentKey, []byte{53}) != 0 {
-		t.Errorf("s1c4 failed: output is %s and key is %s", ans, currentKey)
+	if string(ans) != "Now that the party is jumping\n" && currentKey != byte(53) {
+		t.Errorf("s1c4 failed: output is %s and key is %v", ans, currentKey)
 	}
 }
 
@@ -96,38 +80,39 @@ func TestS1preC6(t *testing.T) {
 
 func TestS1C6(t *testing.T) {
 	block, _ := ioutil.ReadFile("6.txt")
-	dist1 := 0
-	dist2 := 0
-	dist3 := 0
-	hamm1 := math.Inf(1)
-	hamm2 := math.Inf(1)
-	hamm3 := math.Inf(1)
+	block, _ = base64.StdEncoding.DecodeString(string(block))
+	keylength := 0
+	hdist := math.Inf(1)
 	for i := 2; i < 41; i++ {
-		first := block[:i-1]
-		second := block[i-1 : 2*i-1]
-		log.Println(first, second)
-		hamm := float64(hamming(first, second)) / float64(i)
-		log.Println(hamm)
-		if hamm < hamm1 {
-			hamm3 = hamm2
-			dist3 = dist2
-			hamm2 = hamm1
-			dist2 = dist1
-			hamm1 = hamm
-			dist1 = i
-		} else if hamm < hamm2 {
-			hamm3 = hamm2
-			dist3 = dist2
-			hamm2 = hamm
-			dist2 = i
-		} else if hamm < hamm3 {
-			hamm3 = hamm
-			dist3 = i
+		numberOfBlocks := 50 // Assume that the analysis will work when we have over 100 bytes at our disposal.
+		h := 0
+		first := block[:i]
+		for j := 1; j < numberOfBlocks; j++ {
+			jthBlock := block[j*i : (j+1)*i]
+			h = h + hamming(first, jthBlock)
+		}
+		normalisedHamming := float64(h) / float64(numberOfBlocks*i)
+		if normalisedHamming < hdist {
+			hdist = normalisedHamming
+			keylength = i
 		}
 	}
-	log.Println(dist1, dist2, dist3)
-	ans := block
-	if len(ans) < 0 {
-		t.Errorf("s1prec6 failed: output is %v", ans)
+	div := len(block) / keylength
+	rem := len(block) % keylength
+	key := make([]byte, keylength)
+	for i := 0; i < keylength; i++ {
+		extra := 0
+		if i < rem {
+			extra = 1
+		}
+		ithBlock := make([]byte, div+extra)
+		for j := 0; j < len(ithBlock); j++ {
+			ithBlock[j] = block[i+j*keylength]
+		}
+		_, _, key[i] = moreLikely(ithBlock, []byte{}, math.Inf(1), byte(0))
+	}
+	ans := xor(block, key)
+	if string(ans)[:33] != "I'm back and I'm ringin' the bell" {
+		t.Errorf("s1prec6 failed: output is %s", ans)
 	}
 }

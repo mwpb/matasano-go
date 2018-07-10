@@ -31,6 +31,7 @@ func byteHamming(byte1 byte, byte2 byte) int {
 
 func hamming(block1 Block, block2 Block) int {
 	n := int(math.Max(float64(len(block1)), float64(len(block2))))
+	// log.Printf("n = %d", n)
 	count := 0
 	for i := 0; i < n; i++ {
 		bit1 := byte(0)
@@ -42,6 +43,8 @@ func hamming(block1 Block, block2 Block) int {
 			bit2 = block2[i]
 		}
 		count = count + byteHamming(bit1, bit2)
+		// log.Println(bit1, bit2)
+		// log.Println(count)
 	}
 	return count
 }
