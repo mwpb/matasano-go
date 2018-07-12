@@ -1,10 +1,14 @@
 package cryptopals
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/aes"
 	"encoding/base64"
+	"encoding/hex"
 	"io/ioutil"
 	"log"
+	"os"
 	"testing"
 )
 
@@ -121,6 +125,7 @@ func TestS1C7(t *testing.T) {
 	block, _ := aes.NewCipher([]byte("YELLOW SUBMARINE"))
 
 	dst := make([]byte, len(ciphertext))
+	// log.Println(len(ciphertext) / 16)
 	for i := 0; i < len(ciphertext)/16; i++ {
 		dstBlock := make([]byte, 16)
 		cipherblock := ciphertext[i*16 : (i+1)*16]
@@ -131,8 +136,37 @@ func TestS1C7(t *testing.T) {
 	}
 
 	ans := dst
-	log.Println(string(ans))
+	// log.Println(string(ans))
 	if len(ans) < 0 {
 		t.Errorf("s1c7 failed: output is %v", ans)
+	}
+}
+
+func TestS1C8(t *testing.T) {
+	file, _ := os.Open("8.txt")
+	scanner := bufio.NewScanner(file)
+	currentCount := 0
+	currentBlock := []byte{}
+	for scanner.Scan() {
+		block, _ := hex.DecodeString(string(scanner.Bytes()))
+		numberofBlocks := len(block) / 16
+		count := 0
+		for i := 0; i < numberofBlocks; i++ {
+			ithBlock := block[i*16 : (i+1)*16]
+			for j := 1; j < i; j++ {
+				jthBlock := block[j*16 : (j+1)*16]
+				if bytes.Equal(ithBlock, jthBlock) {
+					count += 1
+				}
+			}
+		}
+		if count > currentCount {
+			currentCount = count
+			currentBlock = block
+		}
+	}
+	ans := hex.EncodeToString(currentBlock)
+	if ans != "d880619740a8a19b7840a8a31c810a3d08649af70dc06f4fd5d2d69c744cd283e2dd052f6b641dbf9d11b0348542bb5708649af70dc06f4fd5d2d69c744cd2839475c9dfdbc1d46597949d9c7e82bf5a08649af70dc06f4fd5d2d69c744cd28397a93eab8d6aecd566489154789a6b0308649af70dc06f4fd5d2d69c744cd283d403180c98c8f6db1f2a3f9c4040deb0ab51b29933f2c123c58386b06fba186a" {
+		t.Errorf("s1c8 failed: output is %v", ans)
 	}
 }
