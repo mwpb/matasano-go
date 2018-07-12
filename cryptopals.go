@@ -48,3 +48,21 @@ func hamming(block1 Block, block2 Block) int {
 	}
 	return count
 }
+
+func pad(original []byte, blockLength int) []byte {
+	rem := blockLength % len(original)
+	n := len(original)
+	if rem == 0 {
+		return original
+	}
+	numberOfBlocks := n / blockLength
+	outLength := (numberOfBlocks + 1) * blockLength
+	out := make([]byte, outLength)
+	copy(out, original)
+	// log.Println(outLength)
+	for i := 0; i < rem; i++ {
+		// log.Println(n + i)
+		out[n+i] = byte(rem)
+	}
+	return out
+}
