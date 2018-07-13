@@ -1,6 +1,7 @@
 package cryptopals
 
 import (
+	"bytes"
 	"crypto/aes"
 	"encoding/base64"
 	"io/ioutil"
@@ -18,15 +19,15 @@ import (
 // }
 
 func TestS2C10(t *testing.T) {
-	ciphertext, _ := ioutil.ReadFile("10.txt")
-	ciphertext, _ = base64.StdEncoding.DecodeString(string(ciphertext))
-	ciphertext = pad(ciphertext, 16)
+	input, _ := ioutil.ReadFile("10.txt")
+	input, _ = base64.StdEncoding.DecodeString(string(input))
+	ciphertext := pad(input, 16)
+	log.Println(ciphertext)
 
 	block, _ := aes.NewCipher([]byte("YELLOW SUBMARINE"))
 
 	dst := make([]byte, len(ciphertext))
 	prevCipherBlock := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	log.Println(len(prevCipherBlock))
 	for i := 0; i < len(ciphertext)/16; i++ {
 		dstBlock := make([]byte, 16)
 		cipherblock := ciphertext[i*16 : (i+1)*16]
@@ -36,10 +37,25 @@ func TestS2C10(t *testing.T) {
 		}
 		prevCipherBlock = cipherblock
 	}
+	// log.Println("dst")
+	// log.Println(dst)
 
-	ans := dst
-	log.Println(string(ans))
-	if len(ans) < 0 {
+	prevCipherBlock = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	original := make([]byte, len(dst))
+	for i := 0; i < len(dst)/16; i++ {
+		afterXOR := xor(prevCipherBlock, dst[i*16:(i+1)*16])
+		newBlock := make([]byte, 16)
+		block.Encrypt(newBlock, afterXOR)
+		for j := 0; j < 16; j++ {
+			original[16*i+j] = newBlock[j]
+		}
+		prevCipherBlock = newBlock
+	}
+	// original = original[16:]
+	log.Println("orig")
+	log.Println(original)
+	ans := original
+	if bytes.Equal(ciphertext, original) == false {
 		t.Errorf("s2c1 failed: output is %v", ans)
 	}
 }

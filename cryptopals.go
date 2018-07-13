@@ -1,6 +1,7 @@
 package cryptopals
 
 import (
+	"log"
 	"math"
 )
 
@@ -50,7 +51,8 @@ func hamming(block1 Block, block2 Block) int {
 }
 
 func pad(original []byte, blockLength int) []byte {
-	rem := blockLength % len(original)
+	rem := len(original) % blockLength
+	log.Println(rem)
 	n := len(original)
 	if rem == 0 {
 		return original
