@@ -1,11 +1,9 @@
 package cryptopals
 
 import (
+	"bytes"
 	"crypto/aes"
-	"crypto/rand"
-	"log"
 	"math"
-	"math/big"
 )
 
 type Block []byte
@@ -103,24 +101,11 @@ func decrypt(ciphertext []byte, key []byte, iv []byte) []byte {
 	return plaintext
 }
 
-func encryptionOracle(plaintext []byte) {
-	rand1, _ := rand.Int(rand.Reader, big.NewInt(2))
-	encryptionMethod := rand1.Int64()
-	rand2, _ := rand.Int(rand.Reader, big.NewInt(5))
-	preLength := rand2.Int64() + 5
-	rand3, _ := rand.Int(rand.Reader, big.NewInt(5))
-	postLength := rand3.Int64() + 5
-	pre := make([]byte, preLength)
-	post := make([]byte, postLength)
-	rand.Read(pre)
-	rand.Read(post)
-	key := make([]byte, 16)
-	rand.Read(key)
-	if encryptionMethod == 0 {
-		log.Println("encode using ecb")
+func encryptionOracle(encrypter func([]byte) []byte) string {
+	ciphertext := encrypter([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
+	if bytes.Equal(ciphertext[0:16], ciphertext[16:32]) {
+		return "ecb"
 	} else {
-		iv := make([]byte, 16)
-		rand.Read(iv)
-		log.Println("encode using cbc")
+		return "cbc"
 	}
 }
