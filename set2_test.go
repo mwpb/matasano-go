@@ -32,7 +32,7 @@ func TestS2C10(t *testing.T) {
 	newCiphertext := encrypt(plaintext, key, iv)
 	ans := newCiphertext
 	if bytes.Equal(ciphertext, newCiphertext) == false {
-		t.Errorf("s2c1 failed: output is %v", ans)
+		t.Errorf("s2c1 failed: output is %v", len(ans))
 	}
 }
 
@@ -82,5 +82,20 @@ func TestS2C11(t *testing.T) {
 	log.Println(string(ans))
 	if len(ans) < 0 {
 		t.Errorf("s2c1 failed: output is %v", ans)
+	}
+}
+
+var unknownKey []byte
+
+func blackBox(extraText []byte) []byte {
+	plaintext, _ := base64.StdEncoding.DecodeString("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK")
+	return encrypt(append(extraText, plaintext...), unknownKey, []byte{})
+}
+
+func TestS2C12(t *testing.T) {
+	rand.Read(unknownKey)
+	ans := attackBlackBox(blackBox)
+	if len(ans) < 0 {
+		t.Errorf("s2c12 failed: output is %v", ans)
 	}
 }

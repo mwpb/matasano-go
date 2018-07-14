@@ -3,6 +3,7 @@ package cryptopals
 import (
 	"bytes"
 	"crypto/aes"
+	"log"
 	"math"
 )
 
@@ -85,7 +86,9 @@ func encrypt(plaintext []byte, key []byte, iv []byte) []byte {
 }
 
 func decrypt(ciphertext []byte, key []byte, iv []byte) []byte {
-	ciphertext = pad(ciphertext, 16)
+	if len(ciphertext)%16 != 0 {
+		log.Println("Given a ciphertext that does not have length that is a multiple of the blocksize.")
+	}
 	n := len(ciphertext)
 	block, _ := aes.NewCipher(key)
 	plaintext := make([]byte, n)
@@ -108,4 +111,8 @@ func encryptionOracle(encrypter func([]byte) []byte) string {
 	} else {
 		return "cbc"
 	}
+}
+
+func attackBlackBox(blackBox func([]byte) []byte) []byte {
+	return []byte{6}
 }
