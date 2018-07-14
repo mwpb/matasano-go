@@ -1,7 +1,10 @@
 package cryptopals
 
 import (
+	"encoding/base64"
+	"io/ioutil"
 	"log"
+	"testing"
 )
 
 func dummy() {
@@ -110,29 +113,14 @@ func dummy() {
 // 	}
 // }
 
-// func TestS1C7(t *testing.T) {
-// 	ciphertext, _ := ioutil.ReadFile("7.txt")
-// 	ciphertext, _ = base64.StdEncoding.DecodeString(string(ciphertext))
-
-// 	block, _ := aes.NewCipher([]byte("YELLOW SUBMARINE"))
-
-// 	dst := make([]byte, len(ciphertext))
-// 	// log.Println(len(ciphertext) / 16)
-// 	for i := 0; i < len(ciphertext)/16; i++ {
-// 		dstBlock := make([]byte, 16)
-// 		cipherblock := ciphertext[i*16 : (i+1)*16]
-// 		block.Decrypt(dstBlock, cipherblock)
-// 		for j := 0; j < 16; j++ {
-// 			dst[16*i+j] = dstBlock[j]
-// 		}
-// 	}
-
-// 	ans := dst
-// 	// log.Println(string(ans))
-// 	if len(ans) < 0 {
-// 		t.Errorf("s1c7 failed: output is %v", ans)
-// 	}
-// }
+func TestS1C7(t *testing.T) {
+	ciphertext, _ := ioutil.ReadFile("7.txt")
+	ciphertext, _ = base64.StdEncoding.DecodeString(string(ciphertext))
+	ans := decrypt(ciphertext, []byte("YELLOW SUBMARINE"), []byte{})
+	if len(ans) < 0 {
+		t.Errorf("s1c7 failed: output is %v", ans)
+	}
+}
 
 // func TestS1C8(t *testing.T) {
 // 	file, _ := os.Open("8.txt")

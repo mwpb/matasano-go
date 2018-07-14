@@ -1,8 +1,11 @@
 package cryptopals
 
 import (
+	"crypto/aes"
+	"crypto/rand"
 	"log"
 	"math"
+	"math/big"
 )
 
 type Block []byte
@@ -52,7 +55,6 @@ func hamming(block1 Block, block2 Block) int {
 
 func pad(original []byte, blockLength int) []byte {
 	rem := len(original) % blockLength
-	log.Println(rem)
 	n := len(original)
 	if rem == 0 {
 		return original
@@ -61,10 +63,64 @@ func pad(original []byte, blockLength int) []byte {
 	outLength := (numberOfBlocks + 1) * blockLength
 	out := make([]byte, outLength)
 	copy(out, original)
-	// log.Println(outLength)
 	for i := 0; i < rem; i++ {
-		// log.Println(n + i)
 		out[n+i] = byte(rem)
 	}
 	return out
+}
+
+func encrypt(plaintext []byte, key []byte, iv []byte) []byte {
+	plaintext = pad(plaintext, 16)
+	n := len(plaintext)
+	block, _ := aes.NewCipher(key)
+	ciphertext := make([]byte, n)
+	for i := 0; i < n/16; i++ {
+		if len(iv) == len(key) {
+			copy(plaintext[i*16:(i+1)*16], xor(plaintext[i*16:(i+1)*16], iv))
+			block.Encrypt(ciphertext[i*16:(i+1)*16], plaintext[i*16:(i+1)*16])
+			iv = ciphertext[i*16 : (i+1)*16]
+		} else {
+			block.Encrypt(ciphertext[i*16:(i+1)*16], plaintext[i*16:(i+1)*16])
+		}
+	}
+	return ciphertext
+}
+
+func decrypt(ciphertext []byte, key []byte, iv []byte) []byte {
+	ciphertext = pad(ciphertext, 16)
+	n := len(ciphertext)
+	block, _ := aes.NewCipher(key)
+	plaintext := make([]byte, n)
+	for i := 0; i < n/16; i++ {
+		if len(iv) == len(key) {
+			block.Decrypt(plaintext[i*16:(i+1)*16], ciphertext[i*16:(i+1)*16])
+			copy(plaintext[i*16:(i+1)*16], xor(plaintext[i*16:(i+1)*16], iv))
+			iv = ciphertext[i*16 : (i+1)*16]
+		} else {
+			block.Decrypt(plaintext[i*16:(i+1)*16], ciphertext[i*16:(i+1)*16])
+		}
+	}
+	return plaintext
+}
+
+func encryptionOracle(plaintext []byte) {
+	rand1, _ := rand.Int(rand.Reader, big.NewInt(2))
+	encryptionMethod := rand1.Int64()
+	rand2, _ := rand.Int(rand.Reader, big.NewInt(5))
+	preLength := rand2.Int64() + 5
+	rand3, _ := rand.Int(rand.Reader, big.NewInt(5))
+	postLength := rand3.Int64() + 5
+	pre := make([]byte, preLength)
+	post := make([]byte, postLength)
+	rand.Read(pre)
+	rand.Read(post)
+	key := make([]byte, 16)
+	rand.Read(key)
+	if encryptionMethod == 0 {
+		log.Println("encode using ecb")
+	} else {
+		iv := make([]byte, 16)
+		rand.Read(iv)
+		log.Println("encode using cbc")
+	}
 }
