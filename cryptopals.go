@@ -62,7 +62,7 @@ func pad(original []byte, blockLength int) []byte {
 	outLength := (numberOfBlocks + 1) * blockLength
 	out := make([]byte, outLength)
 	copy(out, original)
-	for i := 0; i < rem; i++ {
+	for i := 0; i < blockLength-rem; i++ {
 		out[n+i] = byte(rem)
 	}
 	return out
@@ -113,6 +113,48 @@ func encryptionOracle(encrypter func([]byte) []byte) string {
 	}
 }
 
+func discoverBlockSize(blackBox func([]byte) []byte) int {
+	n := len(blackBox([]byte{}))
+	currentPre := []byte{byte('a')}
+	maxBlockSize := 999
+	for i := 0; i < maxBlockSize; i++ {
+		out := blackBox(currentPre)
+		if len(out) > n {
+			return len(out) - n
+		} else {
+			currentPre = append(currentPre, []byte{byte('a')}...)
+		}
+	}
+	log.Println("No appropriate block size found.")
+	return -1
+}
+
+func blackBoxDict(blackBox func([]byte) []byte, blockSize int) [][]byte {
+	dict := make([][]byte, 256)
+	oneShort := make([]byte, blockSize)
+	for i := 0; i < 256; i++ {
+		b := byte(i)
+		oneShort[blockSize-1] = b
+		out := blackBox(oneShort)[:blockSize]
+		dict[i] = out
+	}
+	return dict
+}
+
 func attackBlackBox(blackBox func([]byte) []byte) []byte {
+	blockSize := discoverBlockSize(blackBox)
+	log.Println(blockSize)
+	isECB := (encryptionOracle(blackBox) == "ecb")
+	log.Println(isECB)
+	dict := blackBoxDict(blackBox, blockSize)
+	oneShort := make([]byte, blockSize-1)
+	firstBlock := blackBox(oneShort)[:blockSize]
+	firstByte := byte(0)
+	for i := 0; i < 256; i++ {
+		if bytes.Equal(dict[i], firstBlock) {
+			firstByte = byte(i)
+		}
+	}
+	log.Println(firstByte)
 	return []byte{6}
 }

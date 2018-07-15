@@ -1,10 +1,8 @@
 package cryptopals
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/base64"
-	"io/ioutil"
 	"log"
 	"math/big"
 	"testing"
@@ -23,18 +21,18 @@ func dummy2() {
 // 	}
 // }
 
-func TestS2C10(t *testing.T) {
-	ciphertext, _ := ioutil.ReadFile("10.txt")
-	ciphertext, _ = base64.StdEncoding.DecodeString(string(ciphertext))
-	key := []byte("YELLOW SUBMARINE")
-	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	plaintext := decrypt(ciphertext, key, iv)
-	newCiphertext := encrypt(plaintext, key, iv)
-	ans := newCiphertext
-	if bytes.Equal(ciphertext, newCiphertext) == false {
-		t.Errorf("s2c1 failed: output is %v", len(ans))
-	}
-}
+// func TestS2C10(t *testing.T) {
+// 	ciphertext, _ := ioutil.ReadFile("10.txt")
+// 	ciphertext, _ = base64.StdEncoding.DecodeString(string(ciphertext))
+// 	key := []byte("YELLOW SUBMARINE")
+// 	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+// 	plaintext := decrypt(ciphertext, key, iv)
+// 	newCiphertext := encrypt(plaintext, key, iv)
+// 	ans := newCiphertext
+// 	if bytes.Equal(ciphertext, newCiphertext) == false {
+// 		t.Errorf("s2c1 failed: output is %v", len(ans))
+// 	}
+// }
 
 func randomECB(plaintext []byte) []byte {
 	rand2, _ := rand.Int(rand.Reader, big.NewInt(5))
@@ -70,30 +68,30 @@ func randomCBC(plaintext []byte) []byte {
 	return ciphertext
 }
 
-func TestS2C11(t *testing.T) {
-	rand1, _ := rand.Int(rand.Reader, big.NewInt(2))
-	encryptionMethod := rand1.Int64()
-	ans := ""
-	if encryptionMethod == 0 {
-		ans = encryptionOracle(randomECB)
-	} else {
-		ans = encryptionOracle(randomCBC)
-	}
-	log.Println(string(ans))
-	if len(ans) < 0 {
-		t.Errorf("s2c1 failed: output is %v", ans)
-	}
-}
+// func TestS2C11(t *testing.T) {
+// 	rand1, _ := rand.Int(rand.Reader, big.NewInt(2))
+// 	encryptionMethod := rand1.Int64()
+// 	ans := ""
+// 	if encryptionMethod == 0 {
+// 		ans = encryptionOracle(randomECB)
+// 	} else {
+// 		ans = encryptionOracle(randomCBC)
+// 	}
+// 	log.Println(string(ans))
+// 	if len(ans) < 0 {
+// 		t.Errorf("s2c1 failed: output is %v", ans)
+// 	}
+// }
 
-var unknownKey []byte
+var unknownKey [16]byte
 
 func blackBox(extraText []byte) []byte {
 	plaintext, _ := base64.StdEncoding.DecodeString("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK")
-	return encrypt(append(extraText, plaintext...), unknownKey, []byte{})
+	return encrypt(append(extraText, plaintext...), unknownKey[:], []byte{})
 }
 
 func TestS2C12(t *testing.T) {
-	rand.Read(unknownKey)
+	rand.Read(unknownKey[:])
 	ans := attackBlackBox(blackBox)
 	if len(ans) < 0 {
 		t.Errorf("s2c12 failed: output is %v", ans)
