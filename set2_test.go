@@ -93,7 +93,7 @@ func blackBox(extraText []byte) []byte {
 func TestS2C12(t *testing.T) {
 	rand.Read(unknownKey[:])
 	ans := attackBlackBox(blackBox)
-	if len(ans) < 0 {
+	if string(ans) != "Rollin' in my 5.0\nWith my rag-top down so my hair can blow\nThe girlies on standby waving just to say hi\nDid you stop? No, I just drove by\n" {
 		t.Errorf("s2c12 failed: output is %v", ans)
 	}
 }

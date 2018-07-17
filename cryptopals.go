@@ -63,7 +63,7 @@ func pad(original []byte, blockLength int) []byte {
 	out := make([]byte, outLength)
 	copy(out, original)
 	for i := 0; i < blockLength-rem; i++ {
-		out[n+i] = byte(rem)
+		out[n+i] = byte(blockLength - rem)
 	}
 	return out
 }
@@ -113,48 +113,89 @@ func encryptionOracle(encrypter func([]byte) []byte) string {
 	}
 }
 
-func discoverBlockSize(blackBox func([]byte) []byte) int {
+func discoverBlockSize(blackBox func([]byte) []byte) (int, int) {
 	n := len(blackBox([]byte{}))
-	currentPre := []byte{byte('a')}
+	currentPre := make([]byte, 0)
 	maxBlockSize := 999
 	for i := 0; i < maxBlockSize; i++ {
 		out := blackBox(currentPre)
 		if len(out) > n {
-			return len(out) - n
+			return len(out) - n, i
 		} else {
 			currentPre = append(currentPre, []byte{byte('a')}...)
 		}
 	}
 	log.Println("No appropriate block size found.")
-	return -1
+	return -1, -1
+}
+func prepad(slice []byte) []byte {
+	if len(slice) == 0 {
+		return make([]byte, 16)
+	}
+	n := len(slice)
+	rem := n % 16
+	extraRequired := 16 - rem
+	numberOfBlocks := n / 16
+	out := make([]byte, (numberOfBlocks+1)*16)
+	for i := 0; i < n; i++ {
+		out[extraRequired+i] = slice[i]
+	}
+	return out
 }
 
-func blackBoxDict(blackBox func([]byte) []byte, blockSize int) [][]byte {
+func blackBoxDict(blackBox func([]byte) []byte, prevFifteen []byte) [][]byte {
 	dict := make([][]byte, 256)
-	oneShort := make([]byte, blockSize)
+	fullSixteen := append(prevFifteen, byte(0))
 	for i := 0; i < 256; i++ {
 		b := byte(i)
-		oneShort[blockSize-1] = b
-		out := blackBox(oneShort)[:blockSize]
+		fullSixteen[15] = b
+		out := blackBox(fullSixteen)[:16]
 		dict[i] = out
 	}
 	return dict
 }
 
-func attackBlackBox(blackBox func([]byte) []byte) []byte {
-	blockSize := discoverBlockSize(blackBox)
-	log.Println(blockSize)
-	isECB := (encryptionOracle(blackBox) == "ecb")
-	log.Println(isECB)
-	dict := blackBoxDict(blackBox, blockSize)
-	oneShort := make([]byte, blockSize-1)
-	firstBlock := blackBox(oneShort)[:blockSize]
-	firstByte := byte(0)
+func reverseLookup(block []byte, dict [][]byte) byte {
 	for i := 0; i < 256; i++ {
-		if bytes.Equal(dict[i], firstBlock) {
-			firstByte = byte(i)
+		if bytes.Equal(dict[i], block) {
+			return byte(i)
 		}
 	}
-	log.Println(firstByte)
-	return []byte{6}
+	log.Println("Byte not found.")
+	return byte(0)
+}
+
+func shiftAppend(slice []byte, b byte) []byte {
+	n := len(slice)
+	out := make([]byte, n)
+	for i := 0; i < n-1; i++ {
+		out[i] = slice[i+1]
+	}
+	out[n-1] = b
+	return out
+}
+
+func attackBlackBox(blackBox func([]byte) []byte) []byte {
+	ciphertext := blackBox([]byte{})
+	cipherlength := len(ciphertext)
+	// log.Println(cipherlength)
+	blocksize, jumpIndex := discoverBlockSize(blackBox)
+	plainlength := cipherlength - (jumpIndex - 1)
+	log.Println(blocksize)
+	isECB := (encryptionOracle(blackBox) == "ecb")
+	log.Println(isECB)
+	prevFifteen := make([]byte, 15)
+	knownBytes := make([]byte, plainlength)
+	dict := make([][]byte, 256)
+	for i := 0; i < plainlength; i++ {
+		blockStart := 16 * (i / 16)
+		blockEnd := 16*(i/16) + 16
+		dict = blackBoxDict(blackBox, prevFifteen)
+		pre := make([]byte, blocksize-1-(i%16))
+		outBlock := blackBox(pre)[blockStart:blockEnd] // computing the same thing multiple times
+		outByte := reverseLookup(outBlock, dict)
+		knownBytes[i] = outByte
+		prevFifteen = shiftAppend(prevFifteen, outByte)
+	}
+	return knownBytes
 }
