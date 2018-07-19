@@ -90,10 +90,59 @@ func blackBox(extraText []byte) []byte {
 	return encrypt(append(extraText, plaintext...), unknownKey[:], []byte{})
 }
 
-func TestS2C12(t *testing.T) {
+// func TestS2C12(t *testing.T) {
+// 	rand.Read(unknownKey[:])
+// 	ans := attackBlackBox(blackBox)
+// 	if string(ans) != "Rollin' in my 5.0\nWith my rag-top down so my hair can blow\nThe girlies on standby waving just to say hi\nDid you stop? No, I just drove by\n" {
+// 		t.Errorf("s2c12 failed: output is %v", ans)
+// 	}
+// }
+
+func profileBlackBox(email []byte) []byte {
+	userProfile := profileFor(string(email))
+	out := encrypt(userProfile, unknownKey[:], []byte{})
+	return out
+}
+
+// func TestS2preC13(t *testing.T) {
+// 	userProfile := profileFor("fo&&&===o@===&&&==bar.com")
+// 	key := make([]byte, 16)
+// 	rand.Read(key)
+// 	ciphertext := encrypt(userProfile, key, []byte{})
+// 	plaintext := decrypt(ciphertext, key, []byte{})
+// 	cookie := parseCookie(plaintext)
+// 	log.Println(ciphertext)
+// 	log.Println(cookie)
+// 	ans := cookie
+// 	if len(ans) < 0 {
+// 		t.Errorf("s2prec13 failed: output is %v", ans)
+// 	}
+// }
+
+func TestS2C13(t *testing.T) {
 	rand.Read(unknownKey[:])
-	ans := attackBlackBox(blackBox)
-	if string(ans) != "Rollin' in my 5.0\nWith my rag-top down so my hair can blow\nThe girlies on standby waving just to say hi\nDid you stop? No, I just drove by\n" {
-		t.Errorf("s2c12 failed: output is %v", ans)
+	blocksize, jumpIndex := discoverBlockSize(profileBlackBox)
+	email := make([]byte, 32)
+	prePadding := []byte{}
+	for i := 0; i < 16; i++ {
+		ciphertext := profileBlackBox(email)
+		_, index := getRepeatedBlock(ciphertext, 16)
+		if index != 0 {
+			prePadding = make([]byte, i)
+			break
+		}
+		email = append(email, byte(0))
+	}
+	adminPlain := pad([]byte("admin"), blocksize)
+	attackEmail := append(prePadding, adminPlain...)
+	fakeLastEntry := profileBlackBox(attackEmail)[blocksize : 2*blocksize]
+	getToRightLength := make([]byte, jumpIndex+3)
+	getToRightLength = []byte("a@comp")
+	rightLength := profileBlackBox(getToRightLength)
+	firstTwoEntries := rightLength[:len(rightLength)-16]
+	ans := append(firstTwoEntries, fakeLastEntry...)
+	test := decrypt(ans, unknownKey[:], []byte{})
+	if string(test[len(test)-16:len(test)-11]) != "admin" {
+		t.Errorf("s2c13 failed: output is %v", ans)
 	}
 }
