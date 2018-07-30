@@ -181,9 +181,9 @@ func attackBlackBox(blackBox func([]byte) []byte) []byte {
 	// log.Println(cipherlength)
 	blocksize, jumpIndex := discoverBlockSize(blackBox)
 	plainlength := cipherlength - (jumpIndex - 1)
-	log.Println(blocksize)
-	isECB := (encryptionOracle(blackBox) == "ecb")
-	log.Println(isECB)
+	//log.Println(blocksize)
+	//isECB := (encryptionOracle(blackBox) == "ecb")
+	//log.Println(isECB)
 	prevFifteen := make([]byte, 15)
 	knownBytes := make([]byte, plainlength)
 	dict := make([][]byte, 256)
@@ -192,10 +192,53 @@ func attackBlackBox(blackBox func([]byte) []byte) []byte {
 		blockEnd := 16*(i/16) + 16
 		dict = blackBoxDict(blackBox, prevFifteen)
 		pre := make([]byte, blocksize-1-(i%16))
-		outBlock := blackBox(pre)[blockStart:blockEnd] // computing the same thing multiple times
+		outBlock := blackBox(pre)[blockStart:blockEnd] // computing the same thing multiple times; performance seems fine though
 		outByte := reverseLookup(outBlock, dict)
 		knownBytes[i] = outByte
 		prevFifteen = shiftAppend(prevFifteen, outByte)
 	}
 	return knownBytes
+}
+
+func findRepeatedBlock(slice []byte) int {
+	n := len(slice)
+	numberofBlocks := n / 16
+	for i := 0; i < numberofBlocks; i++ {
+		ithBlock := slice[i*16 : (i+1)*16]
+		for j := 0; j < i; j++ {
+			jthBlock := slice[j*16 : (j+1)*16]
+			if bytes.Equal(ithBlock, jthBlock) {
+				return j * 16
+			}
+		}
+	}
+	return -1
+}
+
+func firstBlockAfterPre(preBlackBox func([]byte) []byte) (int, int) {
+	testPre := make([]byte, 32)
+	for i := 0; i < 16; i++ {
+		slice := preBlackBox(testPre)
+		//log.Println(i)
+		//log.Println(slice)
+		initPosition := findRepeatedBlock(slice)
+		if initPosition >= 0 {
+			return i, initPosition
+		}
+		testPre = append(testPre, byte(0))
+	}
+	return -1, -1
+}
+
+func attackPreBlackBox(preBlackBox func([]byte) []byte) []byte {
+	resetLength, initPosition := firstBlockAfterPre(preBlackBox)
+	//log.Println(resetLength, initPosition)
+	resetPre := make([]byte, resetLength)
+	bBox := func(slice []byte) []byte {
+		wholeInput := append(resetPre, slice...)
+		out := preBlackBox(wholeInput)[initPosition:]
+		return out
+	}
+	ans := attackBlackBox(bBox)
+	return ans
 }

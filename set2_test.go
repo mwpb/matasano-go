@@ -119,30 +119,47 @@ func profileBlackBox(email []byte) []byte {
 // 	}
 // }
 
-func TestS2C13(t *testing.T) {
-	rand.Read(unknownKey[:])
-	blocksize, jumpIndex := discoverBlockSize(profileBlackBox)
-	email := make([]byte, 32)
-	prePadding := []byte{}
-	for i := 0; i < 16; i++ {
-		ciphertext := profileBlackBox(email)
-		_, index := getRepeatedBlock(ciphertext, 16)
-		if index != 0 {
-			prePadding = make([]byte, i)
-			break
-		}
-		email = append(email, byte(0))
-	}
-	adminPlain := pad([]byte("admin"), blocksize)
-	attackEmail := append(prePadding, adminPlain...)
-	fakeLastEntry := profileBlackBox(attackEmail)[blocksize : 2*blocksize]
-	getToRightLength := make([]byte, jumpIndex+3)
-	getToRightLength = []byte("a@comp")
-	rightLength := profileBlackBox(getToRightLength)
-	firstTwoEntries := rightLength[:len(rightLength)-16]
-	ans := append(firstTwoEntries, fakeLastEntry...)
-	test := decrypt(ans, unknownKey[:], []byte{})
-	if string(test[len(test)-16:len(test)-11]) != "admin" {
-		t.Errorf("s2c13 failed: output is %v", ans)
+//func TestS2C13(t *testing.T) {
+//	rand.Read(unknownKey[:])
+//	blocksize, jumpIndex := discoverBlockSize(profileBlackBox)
+//	email := make([]byte, 32)
+//	prePadding := []byte{}
+//	for i := 0; i < 16; i++ {
+//		ciphertext := profileBlackBox(email)
+//		_, index := getRepeatedBlock(ciphertext, 16)
+//		if index != 0 {
+//			prePadding = make([]byte, i)
+//			break
+//		}
+//		email = append(email, byte(0))
+//	}
+//	adminPlain := pad([]byte("admin"), blocksize)
+//	attackEmail := append(prePadding, adminPlain...)
+//	fakeLastEntry := profileBlackBox(attackEmail)[blocksize : 2*blocksize]
+//	getToRightLength := make([]byte, jumpIndex+3)
+//	getToRightLength = []byte("a@comp")
+//	rightLength := profileBlackBox(getToRightLength)
+//	firstTwoEntries := rightLength[:len(rightLength)-16]
+//	ans := append(firstTwoEntries, fakeLastEntry...)
+//	test := decrypt(ans, unknownKey[:], []byte{})
+//	if string(test[len(test)-16:len(test)-11]) != "admin" {
+//		t.Errorf("s2c13 failed: output is %v", ans)
+//	}
+//}
+
+var randLength, _ = rand.Int(rand.Reader, big.NewInt(16))
+var preLength = randLength.Int64()
+var pre = make([]byte, preLength)
+
+func preBlackBox(extraText []byte) []byte {
+	plaintext, _ := base64.StdEncoding.DecodeString("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK")
+	return encrypt(append(append(pre, extraText...), plaintext...), unknownKey[:], []byte{})
+}
+
+func TestS2C14(t *testing.T) {
+	rand.Read(pre)
+	ans := attackPreBlackBox(preBlackBox)
+	if string(ans) != "Rollin' in my 5.0\nWith my rag-top down so my hair can blow\nThe girlies on standby waving just to say hi\nDid you stop? No, I just drove by\n" {
+		t.Errorf("s2c12 failed: output is %v", ans)
 	}
 }

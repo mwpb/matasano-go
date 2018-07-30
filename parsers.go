@@ -38,7 +38,7 @@ func getRepeatedBlock(ciphertext []byte, blocksize int) ([]byte, int) {
 		for j := i + 1; j < numberOfBlocks; j++ {
 			jthBlock := ciphertext[j*blocksize : (j+1)*blocksize]
 			if bytes.Equal(ithBlock, jthBlock) {
-				return ithBlock, i * 16
+				return ithBlock, i * blocksize
 			}
 		}
 	}
