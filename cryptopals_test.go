@@ -1,10 +1,7 @@
 package cryptopals
 
 import (
-	"encoding/base64"
-	"io/ioutil"
 	"log"
-	"testing"
 )
 
 func dummy() {
@@ -113,14 +110,14 @@ func dummy() {
 // 	}
 // }
 
-func TestS1C7(t *testing.T) {
-	ciphertext, _ := ioutil.ReadFile("7.txt")
-	ciphertext, _ = base64.StdEncoding.DecodeString(string(ciphertext))
-	ans := decrypt(ciphertext, []byte("YELLOW SUBMARINE"), []byte{})
-	if len(ans) < 0 {
-		t.Errorf("s1c7 failed: output is %v", ans)
-	}
-}
+//func TestS1C7(t *testing.T) {
+//	ciphertext, _ := ioutil.ReadFile("7.txt")
+//	ciphertext, _ = base64.StdEncoding.DecodeString(string(ciphertext))
+//	ans := decrypt(ciphertext, []byte("YELLOW SUBMARINE"), []byte{})
+//	if len(ans) < 0 {
+//		t.Errorf("s1c7 failed: output is %v", ans)
+//	}
+//}
 
 // func TestS1C8(t *testing.T) {
 // 	file, _ := os.Open("8.txt")
@@ -131,15 +128,15 @@ func TestS1C7(t *testing.T) {
 // 		block, _ := hex.DecodeString(string(scanner.Bytes()))
 // 		numberofBlocks := len(block) / 16
 // 		count := 0
-// 		for i := 0; i < numberofBlocks; i++ {
-// 			ithBlock := block[i*16 : (i+1)*16]
-// 			for j := 1; j < i; j++ {
-// 				jthBlock := block[j*16 : (j+1)*16]
-// 				if bytes.Equal(ithBlock, jthBlock) {
-// 					count += 1
-// 				}
-// 			}
-// 		}
+//		for i := 0; i < numberofBlocks; i++ {
+//			ithBlock := block[i*16 : (i+1)*16]
+//			for j := 1; j < i; j++ {
+//				jthBlock := block[j*16 : (j+1)*16]
+//				if bytes.Equal(ithBlock, jthBlock) {
+//					count += 1
+//				}
+//			}
+//		}
 // 		if count > currentCount {
 // 			currentCount = count
 // 			currentBlock = block

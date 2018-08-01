@@ -156,10 +156,40 @@ func preBlackBox(extraText []byte) []byte {
 	return encrypt(append(append(pre, extraText...), plaintext...), unknownKey[:], []byte{})
 }
 
-func TestS2C14(t *testing.T) {
-	rand.Read(pre)
-	ans := attackPreBlackBox(preBlackBox)
-	if string(ans) != "Rollin' in my 5.0\nWith my rag-top down so my hair can blow\nThe girlies on standby waving just to say hi\nDid you stop? No, I just drove by\n" {
-		t.Errorf("s2c12 failed: output is %v", ans)
+//func TestS2C14(t *testing.T) {
+//	rand.Read(pre)
+//	ans := attackPreBlackBox(preBlackBox)
+//	if string(ans) != "Rollin' in my 5.0\nWith my rag-top down so my hair can blow\nThe girlies on standby waving just to say hi\nDid you stop? No, I just drove by\n" {
+//		t.Errorf("s2c14 failed: output is %v", ans)
+//	}
+//}
+
+//func TestS2C15(t *testing.T) {
+//	ans1, err1 := paddingValidation([]byte("ICE ICE BABY\x04\x04\x04\x04"), 16)
+//	_, err2 := paddingValidation([]byte("ICE ICE BABY\x05\x05\x05\x05"), 16)
+//	_, err3 := paddingValidation([]byte("ICE ICE BABY\x01\x02\x03\x04"), 16)
+//	log.Println(string(ans1))
+//	check1a := bytes.Equal(ans1 ,[]byte("ICE ICE BABY"))
+//	check1b := err1 == nil
+//	check2 := err2 != nil
+//	check3 := err3 != nil
+//	if !(check1a && check1b && check2 && check3) {
+//		t.Errorf("s2c15 failed: output is %v", check2)
+//	}
+//}
+
+func TestS2C16(t *testing.T) {
+	rand.Read(unknownKey[:])
+	sixteen := make([]byte, 16)
+	test := []byte(":admin:true:00")
+	in := append(sixteen, test...)
+	ciphertext := c16func1(in, unknownKey)
+	ciphertext[32] = ciphertext[32] ^ byte(':') ^ byte(';')
+	ciphertext[38] = ciphertext[38] ^ byte(':') ^ byte('=')
+	ciphertext[43] = ciphertext[43] ^ byte(':') ^ byte(';')
+	containsAdmin := c16func2(ciphertext, unknownKey)
+	log.Println(containsAdmin)
+	if false {
+		t.Error("Failed.")
 	}
 }

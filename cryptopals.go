@@ -3,8 +3,10 @@ package cryptopals
 import (
 	"bytes"
 	"crypto/aes"
+	"errors"
 	"log"
 	"math"
+	"strings"
 )
 
 type Block []byte
@@ -241,4 +243,41 @@ func attackPreBlackBox(preBlackBox func([]byte) []byte) []byte {
 	}
 	ans := attackBlackBox(bBox)
 	return ans
+}
+
+func paddingValidation(plaintext []byte, blockSize int) (out []byte, err error) {
+	n := len(plaintext)
+	if n%blockSize != 0 {
+		return plaintext, errors.New("Plaintext length is not multiple of 16.")
+	} else if n == 0 {
+		return plaintext, nil
+	} else {
+		lastByte := plaintext[n-1]
+		claimedPadding := int(lastByte)
+		if int(lastByte) > blockSize {
+			return plaintext, errors.New("Claimed padding length is greater than blocksize.")
+		}
+		for i := 0; i < claimedPadding; i++ {
+			if plaintext[n-1-i] != lastByte {
+				return plaintext, errors.New("Incorrect padding claim.")
+			}
+		}
+		return plaintext[:n-claimedPadding], nil
+	}
+}
+
+func c16func1(userdata []byte, key [16]byte) []byte {
+	userstring := string(userdata)
+	userstring = strings.Replace(userstring, ";", "", -1)
+	userstring = strings.Replace(userstring, "=", "", -1)
+	out := []byte("comment1=cooking%20MCs;userdata=" + userstring + ";comment2=%20like%20a%20pound%20of%20bacon")
+	ciphertext := encrypt(out, key[:], make([]byte, 16))
+	return ciphertext
+}
+
+func c16func2(ciphertext []byte, key [16]byte) bool {
+	plaintext := decrypt(ciphertext, key[:], make([]byte, 16))
+	log.Println(string(plaintext))
+	containsAdmin := strings.Contains(string(plaintext), ";admin=true;")
+	return containsAdmin
 }
