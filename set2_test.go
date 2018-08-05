@@ -5,8 +5,7 @@ import (
 	"encoding/base64"
 	"log"
 	"math/big"
-	"testing"
-)
+	)
 
 func dummy2() {
 	log.Println("HI")
@@ -177,19 +176,19 @@ func preBlackBox(extraText []byte) []byte {
 //		t.Errorf("s2c15 failed: output is %v", check2)
 //	}
 //}
-
-func TestS2C16(t *testing.T) {
-	rand.Read(unknownKey[:])
-	sixteen := make([]byte, 16)
-	test := []byte(":admin:true:00")
-	in := append(sixteen, test...)
-	ciphertext := c16func1(in, unknownKey)
-	ciphertext[32] = ciphertext[32] ^ byte(':') ^ byte(';')
-	ciphertext[38] = ciphertext[38] ^ byte(':') ^ byte('=')
-	ciphertext[43] = ciphertext[43] ^ byte(':') ^ byte(';')
-	containsAdmin := c16func2(ciphertext, unknownKey)
-	log.Println(containsAdmin)
-	if false {
-		t.Error("Failed.")
-	}
-}
+//
+//func TestS2C16(t *testing.T) {
+//	rand.Read(unknownKey[:])
+//	sixteen := make([]byte, 16)
+//	test := []byte(":admin:true:00")
+//	in := append(sixteen, test...)
+//	ciphertext := c16func1(in, unknownKey)
+//	ciphertext[32] = ciphertext[32] ^ byte(':') ^ byte(';')
+//	ciphertext[38] = ciphertext[38] ^ byte(':') ^ byte('=')
+//	ciphertext[43] = ciphertext[43] ^ byte(':') ^ byte(';')
+//	containsAdmin := c16func2(ciphertext, unknownKey)
+//	log.Println(containsAdmin)
+//	if false {
+//		t.Error("Failed.")
+//	}
+//}

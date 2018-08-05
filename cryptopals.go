@@ -7,6 +7,8 @@ import (
 	"log"
 	"math"
 	"strings"
+	"crypto/rand"
+	"math/big"
 )
 
 type Block []byte
@@ -58,7 +60,9 @@ func pad(original []byte, blockLength int) []byte {
 	rem := len(original) % blockLength
 	n := len(original)
 	if rem == 0 {
-		return original
+		post := make([]byte, blockLength)
+		for i := range post {post[i] = byte(blockLength)}
+		return append(original, post...)
 	}
 	numberOfBlocks := n / blockLength
 	outLength := (numberOfBlocks + 1) * blockLength
@@ -250,9 +254,12 @@ func paddingValidation(plaintext []byte, blockSize int) (out []byte, err error) 
 	if n%blockSize != 0 {
 		return plaintext, errors.New("Plaintext length is not multiple of 16.")
 	} else if n == 0 {
-		return plaintext, nil
+		return plaintext, errors.New("Plaintext should not be empty.")
 	} else {
 		lastByte := plaintext[n-1]
+		if lastByte == byte(0) {
+			return plaintext, errors.New("Byte(0) is not valid padding.")
+		}
 		claimedPadding := int(lastByte)
 		if int(lastByte) > blockSize {
 			return plaintext, errors.New("Claimed padding length is greater than blocksize.")
@@ -280,4 +287,38 @@ func c16func2(ciphertext []byte, key [16]byte) bool {
 	log.Println(string(plaintext))
 	containsAdmin := strings.Contains(string(plaintext), ";admin=true;")
 	return containsAdmin
+}
+
+func c17func1(key [16]byte) ([]byte, []byte) {
+	plaintexts := [][]byte{
+		[]byte("MDAwMDAwTm93IHRoYXQgdGhlIHBhcnR5IGlzIGp1bXBpbmc="),
+		[]byte("MDAwMDAxV2l0aCB0aGUgYmFzcyBraWNrZWQgaW4gYW5kIHRoZSBWZWdhJ3MgYXJlIHB1bXBpbic="),
+		[]byte("MDAwMDAyUXVpY2sgdG8gdGhlIHBvaW50LCB0byB0aGUgcG9pbnQsIG5vIGZha2luZw=="),
+		[]byte("MDAwMDAzQ29va2luZyBNQydzIGxpa2UgYSBwb3VuZCBvZiBiYWNvbg=="),
+		[]byte("MDAwMDA0QnVybmluZyAnZW0sIGlmIHlvdSBhaW4ndCBxdWljayBhbmQgbmltYmxl"),
+		[]byte("MDAwMDA1SSBnbyBjcmF6eSB3aGVuIEkgaGVhciBhIGN5bWJhbA=="),
+		[]byte("MDAwMDA2QW5kIGEgaGlnaCBoYXQgd2l0aCBhIHNvdXBlZCB1cCB0ZW1wbw=="),
+		[]byte("MDAwMDA3SSdtIG9uIGEgcm9sbCwgaXQncyB0aW1lIHRvIGdvIHNvbG8="),
+		[]byte("MDAwMDA4b2xsaW4nIGluIG15IGZpdmUgcG9pbnQgb2g="),
+		[]byte("MDAwMDA5aXRoIG15IHJhZy10b3AgZG93biBzbyBteSBoYWlyIGNhbiBibG93"),
+	}
+	//for i:=0;i<len(plaintexts);i++{
+	//	log.Println(len(plaintexts[i])%16)
+	//}
+	randLength, _ := rand.Int(rand.Reader, big.NewInt(10))
+	index := randLength.Int64()
+	plaintext := plaintexts[index]
+	iv := make([]byte, 16)
+	ciphertext := encrypt(plaintext, key[:], iv)
+	return ciphertext, iv
+}
+
+func c17func2(ciphertext []byte, key [16]byte, iv []byte) bool {
+	plaintext := decrypt(ciphertext, key[:], iv)
+	_, err := paddingValidation(plaintext, 16)
+	if err == nil {
+		return true
+	} else {
+		return false
+	}
 }
