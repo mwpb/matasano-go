@@ -3,13 +3,13 @@ package cryptopals
 import (
 	"bytes"
 	"crypto/aes"
+	"crypto/rand"
+	"encoding/binary"
 	"errors"
 	"log"
 	"math"
-	"strings"
-	"crypto/rand"
 	"math/big"
-	"encoding/binary"
+	"strings"
 )
 
 type Block []byte
@@ -62,7 +62,9 @@ func pad(original []byte, blockLength int) []byte {
 	n := len(original)
 	if rem == 0 {
 		post := make([]byte, blockLength)
-		for i := range post {post[i] = byte(blockLength)}
+		for i := range post {
+			post[i] = byte(blockLength)
+		}
 		return append(original, post...)
 	}
 	numberOfBlocks := n / blockLength
@@ -327,18 +329,70 @@ func c17func2(ciphertext []byte, key [16]byte, iv []byte) bool {
 func ctr(input []byte, key []byte, iv []byte) []byte {
 	r := bytes.NewReader(input)
 	out := make([]byte, 0)
-	inblock := make([]byte,16)
+	inblock := make([]byte, 16)
 	ctr := 0
 	plainkey := make([]byte, 16)
 	copy(iv, plainkey[:8])
 	for {
 		n, err := r.Read(inblock)
-		if err!=nil { break }
-		binary.LittleEndian.PutUint16(plainkey[8:],uint16(ctr))
+		if err != nil {
+			break
+		}
+		binary.LittleEndian.PutUint16(plainkey[8:], uint16(ctr))
 		ctr += 1
-		key := encrypt(plainkey, []byte("YELLOW SUBMARINE"), make([]byte,0))[:16]
+		key := encrypt(plainkey, []byte("YELLOW SUBMARINE"), make([]byte, 0))[:16]
 		outblock := xor(key[:n], inblock[:n])
 		out = append(out, outblock...)
 	}
 	return out
+}
+
+func c19setup(key []byte) [][]byte {
+	plaintexts := [][]byte{
+		[]byte("SSBoYXZlIG1ldCB0aGVtIGF0IGNsb3NlIG9mIGRheQ=="),
+		[]byte("Q29taW5nIHdpdGggdml2aWQgZmFjZXM="),
+		[]byte("RnJvbSBjb3VudGVyIG9yIGRlc2sgYW1vbmcgZ3JleQ=="),
+		[]byte("RWlnaHRlZW50aC1jZW50dXJ5IGhvdXNlcy4="),
+		[]byte("SSBoYXZlIHBhc3NlZCB3aXRoIGEgbm9kIG9mIHRoZSBoZWFk"),
+		[]byte("T3IgcG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA=="),
+		[]byte("T3IgaGF2ZSBsaW5nZXJlZCBhd2hpbGUgYW5kIHNhaWQ="),
+		[]byte("UG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA=="),
+		[]byte("QW5kIHRob3VnaHQgYmVmb3JlIEkgaGFkIGRvbmU="),
+		[]byte("T2YgYSBtb2NraW5nIHRhbGUgb3IgYSBnaWJl"),
+		[]byte("VG8gcGxlYXNlIGEgY29tcGFuaW9u"),
+		[]byte("QXJvdW5kIHRoZSBmaXJlIGF0IHRoZSBjbHViLA=="),
+		[]byte("QmVpbmcgY2VydGFpbiB0aGF0IHRoZXkgYW5kIEk="),
+		[]byte("QnV0IGxpdmVkIHdoZXJlIG1vdGxleSBpcyB3b3JuOg=="),
+		[]byte("QWxsIGNoYW5nZWQsIGNoYW5nZWQgdXR0ZXJseTo="),
+		[]byte("QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4="),
+		[]byte("VGhhdCB3b21hbidzIGRheXMgd2VyZSBzcGVudA=="),
+		[]byte("SW4gaWdub3JhbnQgZ29vZCB3aWxsLA=="),
+		[]byte("SGVyIG5pZ2h0cyBpbiBhcmd1bWVudA=="),
+		[]byte("VW50aWwgaGVyIHZvaWNlIGdyZXcgc2hyaWxsLg=="),
+		[]byte("V2hhdCB2b2ljZSBtb3JlIHN3ZWV0IHRoYW4gaGVycw=="),
+		[]byte("V2hlbiB5b3VuZyBhbmQgYmVhdXRpZnVsLA=="),
+		[]byte("U2hlIHJvZGUgdG8gaGFycmllcnM/"),
+		[]byte("VGhpcyBtYW4gaGFkIGtlcHQgYSBzY2hvb2w="),
+		[]byte("QW5kIHJvZGUgb3VyIHdpbmdlZCBob3JzZS4="),
+		[]byte("VGhpcyBvdGhlciBoaXMgaGVscGVyIGFuZCBmcmllbmQ="),
+		[]byte("V2FzIGNvbWluZyBpbnRvIGhpcyBmb3JjZTs="),
+		[]byte("SGUgbWlnaHQgaGF2ZSB3b24gZmFtZSBpbiB0aGUgZW5kLA=="),
+		[]byte("U28gc2Vuc2l0aXZlIGhpcyBuYXR1cmUgc2VlbWVkLA=="),
+		[]byte("U28gZGFyaW5nIGFuZCBzd2VldCBoaXMgdGhvdWdodC4="),
+		[]byte("VGhpcyBvdGhlciBtYW4gSSBoYWQgZHJlYW1lZA=="),
+		[]byte("QSBkcnVua2VuLCB2YWluLWdsb3Jpb3VzIGxvdXQu"),
+		[]byte("SGUgaGFkIGRvbmUgbW9zdCBiaXR0ZXIgd3Jvbmc="),
+		[]byte("VG8gc29tZSB3aG8gYXJlIG5lYXIgbXkgaGVhcnQs"),
+		[]byte("WWV0IEkgbnVtYmVyIGhpbSBpbiB0aGUgc29uZzs="),
+		[]byte("SGUsIHRvbywgaGFzIHJlc2lnbmVkIGhpcyBwYXJ0"),
+		[]byte("SW4gdGhlIGNhc3VhbCBjb21lZHk7"),
+		[]byte("SGUsIHRvbywgaGFzIGJlZW4gY2hhbmdlZCBpbiBoaXMgdHVybiw="),
+		[]byte("VHJhbnNmb3JtZWQgdXR0ZXJseTo="),
+		[]byte("QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4="),
+	}
+	ciphertexts := make([][]byte, len(plaintexts))
+	for i, plaintext := range plaintexts {
+		ciphertexts[i] = ctr(plaintext, key, make([]byte, 8))
+	}
+	return ciphertexts
 }

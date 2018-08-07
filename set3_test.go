@@ -1,9 +1,8 @@
 package cryptopals
 
 import (
-		"log"
+	"log"
 	"testing"
-	"encoding/base64"
 )
 
 func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte) []byte {
@@ -35,6 +34,7 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 	}
 	return xor(prevBlock, plaintext)
 }
+
 //
 //func TestS3C17(t *testing.T) {
 //	rand.Read(unknownKey[:])
@@ -58,10 +58,18 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 //	}
 //}
 
-func TestS3C18(t *testing.T){
-	input, _ := base64.StdEncoding.DecodeString("L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ==")
-	out := ctr(input, []byte("YELLOW SUBMARINE"), make([]byte, 8))
-	log.Println(string(out))
+//func TestS3C18(t *testing.T){
+//	input, _ := base64.StdEncoding.DecodeString("L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ==")
+//	out := ctr(input, []byte("YELLOW SUBMARINE"), make([]byte, 8))
+//	log.Println(string(out))
+//	if false {
+//		t.Error("failed")
+//	}
+//}
+
+func TestS3C19(t *testing.T) {
+	ciphertexts := c19setup(unknownKey[:])
+	log.Println(len(ciphertexts))
 	if false {
 		t.Error("failed")
 	}
