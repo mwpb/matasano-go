@@ -1,9 +1,9 @@
 package cryptopals
 
 import (
-	"crypto/rand"
-	"log"
+		"log"
 	"testing"
+	"encoding/base64"
 )
 
 func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte) []byte {
@@ -35,25 +35,34 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 	}
 	return xor(prevBlock, plaintext)
 }
+//
+//func TestS3C17(t *testing.T) {
+//	rand.Read(unknownKey[:])
+//	ciphertext, iv := c17func1(unknownKey)
+//	n := len(ciphertext)
+//	plaintext := make([]byte, n)
+//	numberOfBlocks := n / 16
+//	for i := 0; i < numberOfBlocks; i++ {
+//		currentBlock := ciphertext[n-(i+1)*16 : n-i*16]
+//		prevBlock := make([]byte, 16)
+//		if i != numberOfBlocks-1 {
+//			prevBlock = ciphertext[n-(i+2)*16 : n-(i+1)*16]
+//		}
+//		plainblock := decryptBlock(currentBlock, prevBlock, unknownKey, iv)
+//		copy(plaintext[n-(i+1)*16:n-i*16], plainblock)
+//	}
+//	plaintext, _ = paddingValidation(plaintext, 16)
+//	log.Println(string(plaintext))
+//	if false {
+//		t.Error("Failed.")
+//	}
+//}
 
-func TestS3C1(t *testing.T) {
-	rand.Read(unknownKey[:])
-	ciphertext, iv := c17func1(unknownKey)
-	n := len(ciphertext)
-	plaintext := make([]byte, n)
-	numberOfBlocks := n / 16
-	for i := 0; i < numberOfBlocks; i++ {
-		currentBlock := ciphertext[n-(i+1)*16 : n-i*16]
-		prevBlock := make([]byte, 16)
-		if i != numberOfBlocks-1 {
-			prevBlock = ciphertext[n-(i+2)*16 : n-(i+1)*16]
-		}
-		plainblock := decryptBlock(currentBlock, prevBlock, unknownKey, iv)
-		copy(plaintext[n-(i+1)*16:n-i*16], plainblock)
-	}
-	plaintext, _ = paddingValidation(plaintext, 16)
-	log.Println(string(plaintext))
+func TestS3C18(t *testing.T){
+	input, _ := base64.StdEncoding.DecodeString("L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ==")
+	out := ctr(input, []byte("YELLOW SUBMARINE"), make([]byte, 8))
+	log.Println(string(out))
 	if false {
-		t.Error("Failed.")
+		t.Error("failed")
 	}
 }

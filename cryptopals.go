@@ -9,6 +9,7 @@ import (
 	"strings"
 	"crypto/rand"
 	"math/big"
+	"encoding/binary"
 )
 
 type Block []byte
@@ -321,4 +322,23 @@ func c17func2(ciphertext []byte, key [16]byte, iv []byte) bool {
 	} else {
 		return false
 	}
+}
+
+func ctr(input []byte, key []byte, iv []byte) []byte {
+	r := bytes.NewReader(input)
+	out := make([]byte, 0)
+	inblock := make([]byte,16)
+	ctr := 0
+	plainkey := make([]byte, 16)
+	copy(iv, plainkey[:8])
+	for {
+		n, err := r.Read(inblock)
+		if err!=nil { break }
+		binary.LittleEndian.PutUint16(plainkey[8:],uint16(ctr))
+		ctr += 1
+		key := encrypt(plainkey, []byte("YELLOW SUBMARINE"), make([]byte,0))[:16]
+		outblock := xor(key[:n], inblock[:n])
+		out = append(out, outblock...)
+	}
+	return out
 }
