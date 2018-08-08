@@ -69,7 +69,13 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 
 func TestS3C19(t *testing.T) {
 	ciphertexts := c19setup(unknownKey[:])
-	log.Println(len(ciphertexts))
+	plaintexts := make([]string, len(ciphertexts))
+	key := c19attack(ciphertexts)
+	for j, ciphertext := range ciphertexts {
+		plaintext := string(xor(key, ciphertext))[:len(ciphertext)]
+		log.Println(plaintext)
+		plaintexts[j] = plaintext
+	}
 	if false {
 		t.Error("failed")
 	}

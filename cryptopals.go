@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"log"
@@ -348,51 +349,88 @@ func ctr(input []byte, key []byte, iv []byte) []byte {
 }
 
 func c19setup(key []byte) [][]byte {
-	plaintexts := [][]byte{
-		[]byte("SSBoYXZlIG1ldCB0aGVtIGF0IGNsb3NlIG9mIGRheQ=="),
-		[]byte("Q29taW5nIHdpdGggdml2aWQgZmFjZXM="),
-		[]byte("RnJvbSBjb3VudGVyIG9yIGRlc2sgYW1vbmcgZ3JleQ=="),
-		[]byte("RWlnaHRlZW50aC1jZW50dXJ5IGhvdXNlcy4="),
-		[]byte("SSBoYXZlIHBhc3NlZCB3aXRoIGEgbm9kIG9mIHRoZSBoZWFk"),
-		[]byte("T3IgcG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA=="),
-		[]byte("T3IgaGF2ZSBsaW5nZXJlZCBhd2hpbGUgYW5kIHNhaWQ="),
-		[]byte("UG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA=="),
-		[]byte("QW5kIHRob3VnaHQgYmVmb3JlIEkgaGFkIGRvbmU="),
-		[]byte("T2YgYSBtb2NraW5nIHRhbGUgb3IgYSBnaWJl"),
-		[]byte("VG8gcGxlYXNlIGEgY29tcGFuaW9u"),
-		[]byte("QXJvdW5kIHRoZSBmaXJlIGF0IHRoZSBjbHViLA=="),
-		[]byte("QmVpbmcgY2VydGFpbiB0aGF0IHRoZXkgYW5kIEk="),
-		[]byte("QnV0IGxpdmVkIHdoZXJlIG1vdGxleSBpcyB3b3JuOg=="),
-		[]byte("QWxsIGNoYW5nZWQsIGNoYW5nZWQgdXR0ZXJseTo="),
-		[]byte("QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4="),
-		[]byte("VGhhdCB3b21hbidzIGRheXMgd2VyZSBzcGVudA=="),
-		[]byte("SW4gaWdub3JhbnQgZ29vZCB3aWxsLA=="),
-		[]byte("SGVyIG5pZ2h0cyBpbiBhcmd1bWVudA=="),
-		[]byte("VW50aWwgaGVyIHZvaWNlIGdyZXcgc2hyaWxsLg=="),
-		[]byte("V2hhdCB2b2ljZSBtb3JlIHN3ZWV0IHRoYW4gaGVycw=="),
-		[]byte("V2hlbiB5b3VuZyBhbmQgYmVhdXRpZnVsLA=="),
-		[]byte("U2hlIHJvZGUgdG8gaGFycmllcnM/"),
-		[]byte("VGhpcyBtYW4gaGFkIGtlcHQgYSBzY2hvb2w="),
-		[]byte("QW5kIHJvZGUgb3VyIHdpbmdlZCBob3JzZS4="),
-		[]byte("VGhpcyBvdGhlciBoaXMgaGVscGVyIGFuZCBmcmllbmQ="),
-		[]byte("V2FzIGNvbWluZyBpbnRvIGhpcyBmb3JjZTs="),
-		[]byte("SGUgbWlnaHQgaGF2ZSB3b24gZmFtZSBpbiB0aGUgZW5kLA=="),
-		[]byte("U28gc2Vuc2l0aXZlIGhpcyBuYXR1cmUgc2VlbWVkLA=="),
-		[]byte("U28gZGFyaW5nIGFuZCBzd2VldCBoaXMgdGhvdWdodC4="),
-		[]byte("VGhpcyBvdGhlciBtYW4gSSBoYWQgZHJlYW1lZA=="),
-		[]byte("QSBkcnVua2VuLCB2YWluLWdsb3Jpb3VzIGxvdXQu"),
-		[]byte("SGUgaGFkIGRvbmUgbW9zdCBiaXR0ZXIgd3Jvbmc="),
-		[]byte("VG8gc29tZSB3aG8gYXJlIG5lYXIgbXkgaGVhcnQs"),
-		[]byte("WWV0IEkgbnVtYmVyIGhpbSBpbiB0aGUgc29uZzs="),
-		[]byte("SGUsIHRvbywgaGFzIHJlc2lnbmVkIGhpcyBwYXJ0"),
-		[]byte("SW4gdGhlIGNhc3VhbCBjb21lZHk7"),
-		[]byte("SGUsIHRvbywgaGFzIGJlZW4gY2hhbmdlZCBpbiBoaXMgdHVybiw="),
-		[]byte("VHJhbnNmb3JtZWQgdXR0ZXJseTo="),
-		[]byte("QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4="),
+	encodedtexts := []string{
+		"SSBoYXZlIG1ldCB0aGVtIGF0IGNsb3NlIG9mIGRheQ==",
+		"Q29taW5nIHdpdGggdml2aWQgZmFjZXM=",
+		"RnJvbSBjb3VudGVyIG9yIGRlc2sgYW1vbmcgZ3JleQ==",
+		"RWlnaHRlZW50aC1jZW50dXJ5IGhvdXNlcy4=",
+		"SSBoYXZlIHBhc3NlZCB3aXRoIGEgbm9kIG9mIHRoZSBoZWFk",
+		"T3IgcG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA==",
+		"T3IgaGF2ZSBsaW5nZXJlZCBhd2hpbGUgYW5kIHNhaWQ=",
+		"UG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA==",
+		"QW5kIHRob3VnaHQgYmVmb3JlIEkgaGFkIGRvbmU=",
+		"T2YgYSBtb2NraW5nIHRhbGUgb3IgYSBnaWJl",
+		"VG8gcGxlYXNlIGEgY29tcGFuaW9u",
+		"QXJvdW5kIHRoZSBmaXJlIGF0IHRoZSBjbHViLA==",
+		"QmVpbmcgY2VydGFpbiB0aGF0IHRoZXkgYW5kIEk=",
+		"QnV0IGxpdmVkIHdoZXJlIG1vdGxleSBpcyB3b3JuOg==",
+		"QWxsIGNoYW5nZWQsIGNoYW5nZWQgdXR0ZXJseTo=",
+		"QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4=",
+		"VGhhdCB3b21hbidzIGRheXMgd2VyZSBzcGVudA==",
+		"SW4gaWdub3JhbnQgZ29vZCB3aWxsLA==",
+		"SGVyIG5pZ2h0cyBpbiBhcmd1bWVudA==",
+		"VW50aWwgaGVyIHZvaWNlIGdyZXcgc2hyaWxsLg==",
+		"V2hhdCB2b2ljZSBtb3JlIHN3ZWV0IHRoYW4gaGVycw==",
+		"V2hlbiB5b3VuZyBhbmQgYmVhdXRpZnVsLA==",
+		"U2hlIHJvZGUgdG8gaGFycmllcnM/",
+		"VGhpcyBtYW4gaGFkIGtlcHQgYSBzY2hvb2w=",
+		"QW5kIHJvZGUgb3VyIHdpbmdlZCBob3JzZS4=",
+		"VGhpcyBvdGhlciBoaXMgaGVscGVyIGFuZCBmcmllbmQ=",
+		"V2FzIGNvbWluZyBpbnRvIGhpcyBmb3JjZTs=",
+		"SGUgbWlnaHQgaGF2ZSB3b24gZmFtZSBpbiB0aGUgZW5kLA==",
+		"U28gc2Vuc2l0aXZlIGhpcyBuYXR1cmUgc2VlbWVkLA==",
+		"U28gZGFyaW5nIGFuZCBzd2VldCBoaXMgdGhvdWdodC4=",
+		"VGhpcyBvdGhlciBtYW4gSSBoYWQgZHJlYW1lZA==",
+		"QSBkcnVua2VuLCB2YWluLWdsb3Jpb3VzIGxvdXQu",
+		"SGUgaGFkIGRvbmUgbW9zdCBiaXR0ZXIgd3Jvbmc=",
+		"VG8gc29tZSB3aG8gYXJlIG5lYXIgbXkgaGVhcnQs",
+		"WWV0IEkgbnVtYmVyIGhpbSBpbiB0aGUgc29uZzs=",
+		"SGUsIHRvbywgaGFzIHJlc2lnbmVkIGhpcyBwYXJ0",
+		"SW4gdGhlIGNhc3VhbCBjb21lZHk7",
+		"SGUsIHRvbywgaGFzIGJlZW4gY2hhbmdlZCBpbiBoaXMgdHVybiw=",
+		"VHJhbnNmb3JtZWQgdXR0ZXJseTo=",
+		"QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4=",
 	}
-	ciphertexts := make([][]byte, len(plaintexts))
-	for i, plaintext := range plaintexts {
+	ciphertexts := make([][]byte, len(encodedtexts))
+	for i, encodedtext := range encodedtexts {
+		plaintext, _ := base64.StdEncoding.DecodeString(encodedtext)
 		ciphertexts[i] = ctr(plaintext, key, make([]byte, 8))
 	}
 	return ciphertexts
+}
+
+func c19attack(ciphertexts [][]byte) []byte {
+	key := make([]byte, 50)
+	for i := 0; i < 50; i++ {
+		ithColumn := make([]byte, 40)
+		for j := 0; j < 40; j++ {
+			if len(ciphertexts[j]) > i {
+				ithColumn[j] = ciphertexts[j][i]
+			}
+		}
+		currentScore := math.Inf(+1)
+		currentKey := byte(0)
+		for j := 0; j < 256; j++ {
+			jthXOR := xor(ithColumn, []byte{byte(j)})
+			score := score(jthXOR)
+			if score < currentScore {
+				currentScore = score
+				currentKey = byte(j)
+			}
+		}
+		key[i] = currentKey
+	}
+	key[26] = ciphertexts[0][26]^byte('f')
+	key[27] = ciphertexts[0][27]^byte(' ')
+	key[28] = ciphertexts[0][28]^byte('d')
+	key[29] = ciphertexts[0][29]^byte('a')
+	key[30] = ciphertexts[0][30]^byte('y')
+	key[31] = ciphertexts[6][31]^byte('d')
+	key[32] = ciphertexts[4][32]^byte('h')
+	key[33] = ciphertexts[4][33]^byte('e')
+	key[34] = ciphertexts[4][34]^byte('a')
+	key[35] = ciphertexts[4][35]^byte('d')
+	key[36] = ciphertexts[37][36]^byte('n')
+	key[37] = ciphertexts[37][37]^byte(',')
+	return key
 }
