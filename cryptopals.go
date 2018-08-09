@@ -400,8 +400,8 @@ func c19setup(key []byte) [][]byte {
 }
 
 func c19attack(ciphertexts [][]byte) []byte {
-	key := make([]byte, 50)
-	for i := 0; i < 50; i++ {
+	key := make([]byte, 150)
+	for i := 0; i < 150; i++ {
 		ithColumn := make([]byte, 40)
 		for j := 0; j < 40; j++ {
 			if len(ciphertexts[j]) > i {
