@@ -2,10 +2,7 @@ package cryptopals
 
 import (
 	"testing"
-	"os"
-	"bufio"
 	"log"
-	"encoding/base64"
 )
 
 func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte) []byte {
@@ -84,80 +81,97 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 //	}
 //}
 
-func TestS3C20(t *testing.T) {
-	file, _ := os.Open("./20.txt")
-	defer file.Close()
-	reader := bufio.NewReader(file)
-	ciphertexts := make([][]byte, 0)
-	for {
-		line, err := reader.ReadBytes('\n')
-		if err != nil { break }
-		plaintext, _ := base64.StdEncoding.DecodeString(string(line))
-		ciphertext := ctr(plaintext, unknownKey[:], make([]byte, 8))
-		ciphertexts = append(ciphertexts, ciphertext)
+//func TestS3C20(t *testing.T) {
+//	file, _ := os.Open("./20.txt")
+//	defer file.Close()
+//	reader := bufio.NewReader(file)
+//	ciphertexts := make([][]byte, 0)
+//	for {
+//		line, err := reader.ReadBytes('\n')
+//		if err != nil { break }
+//		plaintext, _ := base64.StdEncoding.DecodeString(string(line))
+//		ciphertext := ctr(plaintext, unknownKey[:], make([]byte, 8))
+//		ciphertexts = append(ciphertexts, ciphertext)
+//	}
+//	key := c19attack(ciphertexts)
+//	log.Println(len(key))
+//	key[0] = ciphertexts[0][0]^byte('I')
+//	key[0] = ciphertexts[0][0]^byte('I')
+//	key[26] = ciphertexts[2][26]^byte(' ')
+//	key[27] = ciphertexts[0][27]^byte('a')
+//	key[28] = ciphertexts[0][28]^byte('r')
+//	key[29] = ciphertexts[0][29]^byte('n')
+//	key[30] = ciphertexts[0][30]^byte('i')
+//	key[31] = ciphertexts[0][31]^byte('n')
+//	key[32] = ciphertexts[6][32]^byte('u')
+//	key[33] = ciphertexts[4][33]^byte('h')
+//	key[34] = ciphertexts[4][34]^byte('o')
+//	key[35] = ciphertexts[4][35]^byte('r')
+//	key[36] = ciphertexts[4][36]^byte('r')
+//	key[37] = ciphertexts[4][37]^byte('o')
+//	key[38] = ciphertexts[4][38]^byte('r')
+//	key[82] = ciphertexts[1][82]^byte('g')
+//	key[83] = ciphertexts[1][83]^byte('h')
+//	key[84] = ciphertexts[1][84]^byte('t')
+//	key[85] = ciphertexts[4][85]^byte('o')
+//	key[86] = ciphertexts[4][86]^byte('r')
+//	key[87] = ciphertexts[4][87]^byte('r')
+//	key[88] = ciphertexts[4][88]^byte('o')
+//	key[89] = ciphertexts[4][89]^byte('w')
+//	key[90] = ciphertexts[17][90]^byte('b')
+//	key[91] = ciphertexts[17][91]^byte('l')
+//	key[92] = ciphertexts[17][92]^byte('e')
+//	key[93] = ciphertexts[4][93]^byte('i')
+//	key[94] = ciphertexts[4][94]^byte('c')
+//	key[95] = ciphertexts[4][95]^byte('k')
+//	key[96] = ciphertexts[12][96]^byte('n')
+//	key[97] = ciphertexts[12][97]^byte('k')
+//	key[98] = ciphertexts[26][98]^byte('v')
+//	key[99] = ciphertexts[26][99]^byte('e')
+//	key[100] = ciphertexts[26][100]^byte(' ')
+//	key[101] = ciphertexts[26][101]^byte('t')
+//	key[102] = ciphertexts[26][102]^byte('h')
+//	key[103] = ciphertexts[26][103]^byte('e')
+//	key[104] = ciphertexts[46][104]^byte('u')
+//	key[105] = ciphertexts[46][105]^byte('t')
+//	key[106] = ciphertexts[46][106]^byte(' ')
+//	key[107] = ciphertexts[46][107]^byte('t')
+//	key[108] = ciphertexts[46][108]^byte('h')
+//	key[109] = ciphertexts[46][109]^byte('e')
+//	key[110] = ciphertexts[46][110]^byte(' ')
+//	key[111] = ciphertexts[46][111]^byte('m')
+//	key[112] = ciphertexts[46][112]^byte('o')
+//	key[113] = ciphertexts[46][113]^byte('n')
+//	key[114] = ciphertexts[46][114]^byte('e')
+//	key[115] = ciphertexts[46][115]^byte('y')
+//	key[116] = ciphertexts[26][116]^byte('r')
+//	key[117] = ciphertexts[26][117]^byte('y')
+//
+//
+//
+//	plaintexts := make([]string, len(ciphertexts))
+//	for j, ciphertext := range ciphertexts {
+//		plaintext := string(xor(key, ciphertext))[:len(ciphertext)]
+//		log.Println(j, plaintext)
+//		plaintexts[j] = plaintext
+//	}
+//	if false {
+//		t.Error("failed")
+//	}
+//}
+
+func TestS3C21(t *testing.T) {
+	rand := MTRand{
+		index:recurrenceDegree,
+		state:mtInit(0),
 	}
-	key := c19attack(ciphertexts)
-	log.Println(len(key))
-	key[0] = ciphertexts[0][0]^byte('I')
-	key[0] = ciphertexts[0][0]^byte('I')
-	key[26] = ciphertexts[2][26]^byte(' ')
-	key[27] = ciphertexts[0][27]^byte('a')
-	key[28] = ciphertexts[0][28]^byte('r')
-	key[29] = ciphertexts[0][29]^byte('n')
-	key[30] = ciphertexts[0][30]^byte('i')
-	key[31] = ciphertexts[0][31]^byte('n')
-	key[32] = ciphertexts[6][32]^byte('u')
-	key[33] = ciphertexts[4][33]^byte('h')
-	key[34] = ciphertexts[4][34]^byte('o')
-	key[35] = ciphertexts[4][35]^byte('r')
-	key[36] = ciphertexts[4][36]^byte('r')
-	key[37] = ciphertexts[4][37]^byte('o')
-	key[38] = ciphertexts[4][38]^byte('r')
-	key[82] = ciphertexts[1][82]^byte('g')
-	key[83] = ciphertexts[1][83]^byte('h')
-	key[84] = ciphertexts[1][84]^byte('t')
-	key[85] = ciphertexts[4][85]^byte('o')
-	key[86] = ciphertexts[4][86]^byte('r')
-	key[87] = ciphertexts[4][87]^byte('r')
-	key[88] = ciphertexts[4][88]^byte('o')
-	key[89] = ciphertexts[4][89]^byte('w')
-	key[90] = ciphertexts[17][90]^byte('b')
-	key[91] = ciphertexts[17][91]^byte('l')
-	key[92] = ciphertexts[17][92]^byte('e')
-	key[93] = ciphertexts[4][93]^byte('i')
-	key[94] = ciphertexts[4][94]^byte('c')
-	key[95] = ciphertexts[4][95]^byte('k')
-	key[96] = ciphertexts[12][96]^byte('n')
-	key[97] = ciphertexts[12][97]^byte('k')
-	key[98] = ciphertexts[26][98]^byte('v')
-	key[99] = ciphertexts[26][99]^byte('e')
-	key[100] = ciphertexts[26][100]^byte(' ')
-	key[101] = ciphertexts[26][101]^byte('t')
-	key[102] = ciphertexts[26][102]^byte('h')
-	key[103] = ciphertexts[26][103]^byte('e')
-	key[104] = ciphertexts[46][104]^byte('u')
-	key[105] = ciphertexts[46][105]^byte('t')
-	key[106] = ciphertexts[46][106]^byte(' ')
-	key[107] = ciphertexts[46][107]^byte('t')
-	key[108] = ciphertexts[46][108]^byte('h')
-	key[109] = ciphertexts[46][109]^byte('e')
-	key[110] = ciphertexts[46][110]^byte(' ')
-	key[111] = ciphertexts[46][111]^byte('m')
-	key[112] = ciphertexts[46][112]^byte('o')
-	key[113] = ciphertexts[46][113]^byte('n')
-	key[114] = ciphertexts[46][114]^byte('e')
-	key[115] = ciphertexts[46][115]^byte('y')
-	key[116] = ciphertexts[26][116]^byte('r')
-	key[117] = ciphertexts[26][117]^byte('y')
-
-
-
-	plaintexts := make([]string, len(ciphertexts))
-	for j, ciphertext := range ciphertexts {
-		plaintext := string(xor(key, ciphertext))[:len(ciphertext)]
-		log.Println(j, plaintext)
-		plaintexts[j] = plaintext
-	}
+	log.Println(nextRand(rand))
+	log.Println(nextRand(rand))
+	log.Println(nextRand(rand))
+	log.Println(nextRand(rand))
+	log.Println(nextRand(rand))
+	log.Println(nextRand(rand))
+	log.Println(nextRand(rand))
 	if false {
 		t.Error("failed")
 	}
