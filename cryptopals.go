@@ -27,7 +27,7 @@ func xor(block1 Block, block2 Block) Block {
 	return xor
 }
 
-func byteHamming(byte1 byte, byte2 byte) int {
+func byteHamming(byte1 byte, byte2 byte) int { // rewrite using go lang bit library
 	count := 0
 	for i := 0; i < 8; i++ {
 		power := byte(math.Pow(2.0, float64(i)))

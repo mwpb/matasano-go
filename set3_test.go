@@ -1,10 +1,7 @@
 package cryptopals
 
 import (
-	"crypto/rand"
-	"math/big"
 	"testing"
-	"time"
 	"log"
 )
 
@@ -163,34 +160,49 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 //	}
 //}
 
-func TestS3C22(t *testing.T) {
-	rand2, _ := rand.Int(rand.Reader, big.NewInt(5))
-	time.Sleep(time.Duration(rand2.Int64()) * time.Second)
-	log.Println(int(time.Now().Unix()))
-	mtRand := MTRand{
-		index: recurrenceDegree,
-		state: mtInit(int(time.Now().Unix())),
-	}
-	rand3, _ := rand.Int(rand.Reader, big.NewInt(5))
-	time.Sleep(time.Duration(rand3.Int64()) * time.Second)
-	out := nextRand(mtRand)
-	// attack begins here
-	timeUpper := time.Now().Unix()
-	timeLower := timeUpper - 15
-	possibles := make([]int, 16)
-	for i := int(timeLower); i <= int(timeUpper); i++ {
-		mtRand2 := MTRand{
-			index: recurrenceDegree,
-			state: mtInit(i),
+//func TestS3C22(t *testing.T) {
+//	rand2, _ := rand.Int(rand.Reader, big.NewInt(5))
+//	time.Sleep(time.Duration(rand2.Int64()) * time.Second)
+//	log.Println(int(time.Now().Unix()))
+//	mtRand := MTRand{
+//		index: recurrenceDegree,
+//		state: mtInit(int(time.Now().Unix())),
+//	}
+//	rand3, _ := rand.Int(rand.Reader, big.NewInt(5))
+//	time.Sleep(time.Duration(rand3.Int64()) * time.Second)
+//	out := nextRand(mtRand)
+//	// attack begins here
+//	timeUpper := time.Now().Unix()
+//	timeLower := timeUpper - 15
+//	possibles := make([]int, 16)
+//	for i := int(timeLower); i <= int(timeUpper); i++ {
+//		mtRand2 := MTRand{
+//			index: recurrenceDegree,
+//			state: mtInit(i),
+//		}
+//		possibles[i-int(timeLower)] = nextRand(mtRand2)
+//	}
+//	for i, possible := range possibles {
+//		if possible == out {
+//			log.Println(i)
+//			log.Println(i+int(timeLower))
+//		}
+//	}
+//	if false {
+//		t.Error("failed")
+//	}
+//}
+
+func TestInverses(t *testing.T) {
+	for i := 0; i < 256; i++ {
+		y := i
+		x := y ^ ((y << uint(constT)) & constC)
+		z := undoT(x)
+		if y != z {
+			log.Println("Failed")
 		}
-		possibles[i-int(timeLower)] = nextRand(mtRand2)
 	}
-	for i, possible := range possibles {
-		if possible == out {
-			log.Println(i)
-			log.Println(i+int(timeLower))
-		}
-	}
+
 	if false {
 		t.Error("failed")
 	}

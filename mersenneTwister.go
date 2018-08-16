@@ -73,6 +73,47 @@ func temper(y int) int {
 	return y
 }
 
+func undoT(y int) int {
+	z := 0
+	for i := 0; i < constT; i++ {
+		bit := getBit(y, i)
+		if bit {
+			z = setBit(z, i)
+		} else {
+			z = clearBit(z, i)
+		}
+	}
+	for i := constT; i < 2*constT; i++ {
+		bit := getBit(y, i) != (getBit(y, i-constT) && getBit(constC, i))
+		if bit {
+			z = setBit(z, i)
+		} else {
+			z = clearBit(z, i)
+		}
+	}
+	for i := 2 * constT; i < recurrenceDegree; i++ {
+		bit := getBit(y, i)
+		if bit {
+			z = setBit(z, i)
+		} else {
+			z = clearBit(z, i)
+		}
+	}
+	return z
+}
+
+func undoL(y int) int {
+	for i := recurrenceDegree - constL; i >= 0; i-- {
+		bit := getBit(y, i) != getBit(y, i+constL)
+		if bit {
+			setBit(y, i)
+		} else {
+			clearBit(y, i)
+		}
+	}
+	return y
+}
+
 type MTRand struct {
 	index int
 	state []int
