@@ -73,9 +73,30 @@ func temper(y int) int {
 	return y
 }
 
-func undoT(y int) int {
+func undoU(z int) int {
+	y := 0
+	for i := recurrenceDegree; i >= recurrenceDegree-constU; i-- {
+		bit := getBit(z, i)
+		if bit {
+			y = setBit(y, i)
+		} else {
+			y = clearBit(y, i)
+		}
+	}
+	for i := recurrenceDegree - constU - 1; i >= 0; i-- {
+		bit := getBit(z, i) != (getBit(y, i+constU) && getBit(constD, i))
+		if bit {
+			y = setBit(y, i)
+		} else {
+			y = clearBit(y, i)
+		}
+	}
+	return y
+}
+
+func undoRightAnd(y int, shift int, constant int) int {
 	z := 0
-	for i := 0; i < constT; i++ {
+	for i := 0; i < shift; i++ {
 		bit := getBit(y, i)
 		if bit {
 			z = setBit(z, i)
@@ -83,15 +104,15 @@ func undoT(y int) int {
 			z = clearBit(z, i)
 		}
 	}
-	for i := constT; i < 2*constT; i++ {
-		bit := getBit(y, i) != (getBit(y, i-constT) && getBit(constC, i))
+	for i := constT; i < 2*shift; i++ {
+		bit := getBit(y, i) != (getBit(y, i-shift) && getBit(constant, i))
 		if bit {
 			z = setBit(z, i)
 		} else {
 			z = clearBit(z, i)
 		}
 	}
-	for i := 2 * constT; i < recurrenceDegree; i++ {
+	for i := 2 * shift; i < recurrenceDegree; i++ {
 		bit := getBit(y, i)
 		if bit {
 			z = setBit(z, i)
