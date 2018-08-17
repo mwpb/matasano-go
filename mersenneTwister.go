@@ -22,7 +22,7 @@ var constA = 2567483615  // Why?
 var separationPoint = 31 //Why?
 var middleWord = 397     //Why?
 var constU = 11          //Why?
-var constD = 4294967295  //Why?
+var constD = 4294967295  // All 1s in binary... length 32... the maximum value for 32 bit unsigned int
 var constS = 7           //Why?
 var constB = 2636928640  //Why?
 var constT = 15          //Why?
@@ -66,16 +66,24 @@ func twist(prevState []int) []int {
 }
 
 func temper(y int) int {
-	y = y ^ ((y >> uint(constU)) & constD)
+	y = y ^ ((y >> uint(constU)) & constD) // constD in the MT19937 version is 32 1s so (-)&constD is the identity
 	y = y ^ ((y << uint(constS)) & constB)
 	y = y ^ ((y << uint(constT)) & constC)
 	y = y ^ (y >> uint(constL))
 	return y
 }
 
-func undoU(z int) int {
+func untemper(y int) int {
+	y = undoLeft(y, constL)
+	y = undoRightAnd(y, constT, constC)
+	y = undoRightAnd(y, constS, constB)
+	y = undoLeft(y, constU)
+	return y
+}
+
+func undoRightAnd(z int, shift int, constant int) int {
 	y := 0
-	for i := recurrenceDegree; i >= recurrenceDegree-constU; i-- {
+	for i := 0; i < shift; i++ {
 		bit := getBit(z, i)
 		if bit {
 			y = setBit(y, i)
@@ -83,8 +91,8 @@ func undoU(z int) int {
 			y = clearBit(y, i)
 		}
 	}
-	for i := recurrenceDegree - constU - 1; i >= 0; i-- {
-		bit := getBit(z, i) != (getBit(y, i+constU) && getBit(constD, i))
+	for i := shift; i < recurrenceDegree; i++ {
+		bit := getBit(z, i) != (getBit(y, i-shift) && getBit(constant, i))
 		if bit {
 			y = setBit(y, i)
 		} else {
@@ -94,42 +102,13 @@ func undoU(z int) int {
 	return y
 }
 
-func undoRightAnd(y int, shift int, constant int) int {
-	z := 0
-	for i := 0; i < shift; i++ {
-		bit := getBit(y, i)
+func undoLeft(y int, shift int) int {
+	for i := recurrenceDegree - shift; i >= 0; i-- {
+		bit := getBit(y, i) != getBit(y, i+shift)
 		if bit {
-			z = setBit(z, i)
+			y = setBit(y, i)
 		} else {
-			z = clearBit(z, i)
-		}
-	}
-	for i := constT; i < 2*shift; i++ {
-		bit := getBit(y, i) != (getBit(y, i-shift) && getBit(constant, i))
-		if bit {
-			z = setBit(z, i)
-		} else {
-			z = clearBit(z, i)
-		}
-	}
-	for i := 2 * shift; i < recurrenceDegree; i++ {
-		bit := getBit(y, i)
-		if bit {
-			z = setBit(z, i)
-		} else {
-			z = clearBit(z, i)
-		}
-	}
-	return z
-}
-
-func undoL(y int) int {
-	for i := recurrenceDegree - constL; i >= 0; i-- {
-		bit := getBit(y, i) != getBit(y, i+constL)
-		if bit {
-			setBit(y, i)
-		} else {
-			clearBit(y, i)
+			y = clearBit(y, i)
 		}
 	}
 	return y

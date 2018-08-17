@@ -194,12 +194,14 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 //}
 
 func TestInverses(t *testing.T) {
-	for i := 0; i < 256; i++ {
+	for i := 0; i < 257; i++ {
+		log.Println(i)
 		y := i
-		x := y ^ ((y >> uint(constU)) & constD)
-		z := undoU(x)
+		x := temper(y)
+		z := untemper(x)
 		if y != z {
 			log.Println("Failed")
+			log.Println(i)
 		}
 	}
 	if false {
