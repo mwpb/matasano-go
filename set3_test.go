@@ -2,6 +2,7 @@ package cryptopals
 
 import (
 	"testing"
+	"time"
 	"log"
 )
 
@@ -193,15 +194,53 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 //	}
 //}
 
-func TestInverses(t *testing.T) {
-	for i := 0; i < 257; i++ {
-		log.Println(i)
-		y := i
-		x := temper(y)
-		z := untemper(x)
-		if y != z {
-			log.Println("Failed")
-			log.Println(i)
+//func TestInverses(t *testing.T) {
+//	for i := 2552582929; i < 2552582930; i++ {
+//		log.Println(i)
+//		y := i
+//		x := temper(y)
+//		log.Println(x)
+//		z := untemper(x)
+//		log.Println(z)
+//		if y != z {
+//			log.Println("Failed")
+//			log.Println(i)
+//		}
+//	}
+//	if false {
+//		t.Error("failed")
+//	}
+//}
+
+func TestS3C23(t *testing.T) {
+	mtRand := MTRand{
+		index: 0,
+		state: mtInit(int(time.Now().Unix())),
+	}
+	allOutputs := make([]int, 624)
+	allOutputs[0], mtRand = nextRand(mtRand)
+	for i := 1; i < 624; i++ {
+		var out int
+		out, mtRand = nextRand(mtRand)
+		allOutputs[i] = out
+	}
+	// attack begins
+	state := make([]int, 624)
+	for i := 0; i < 624; i++ {
+		state[i] = untemper(allOutputs[i])
+	}
+	mtRandClone := MTRand {
+		state: state,
+		index:recurrenceDegree,
+	}
+	for i:=0;i<1000;i++{
+		var out1 int
+		var out2 int
+		out1, mtRand = nextRand(mtRand)
+		out2, mtRandClone = nextRand(mtRandClone)
+		if out1 != out2 {
+			log.Println("Not equal.")
+			log.Println(out1, out2)
 		}
 	}
 	if false {

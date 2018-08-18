@@ -1,7 +1,6 @@
 package cryptopals
 
 import (
-	"log"
 	"math"
 )
 
@@ -119,17 +118,13 @@ type MTRand struct {
 	state []int
 }
 
-func nextRand(rand MTRand) int {
-	index := rand.index
-	state := rand.state
-	if index >= recurrenceDegree {
-		if index > recurrenceDegree {
-			log.Println("Generator not seeded.")
-		}
-		state = twist(state)
+func nextRand(rand MTRand) (int, MTRand) {
+	if rand.index == recurrenceDegree {
+		rand.state = twist(rand.state)
+		rand.index = 0
 	}
-	y := state[index-1]
+	y := rand.state[rand.index]
 	y = temper(y)
-	index += 1
-	return lowestBits(y, wordSize)
+	rand.index += 1
+	return lowestBits(y, wordSize), rand
 }
