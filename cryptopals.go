@@ -1,4 +1,4 @@
-package cryptopals
+package main
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
+	"io"
 	"log"
 	"math"
 	"math/big"
@@ -348,6 +349,33 @@ func ctr(input []byte, key []byte, iv []byte) []byte {
 	return out
 }
 
+type ctrReader struct {
+	reader io.Reader
+	block  []byte
+	count  int
+	key    []byte
+}
+
+func (ctr *ctrReader) Read(p []byte) (int, error) {
+	plainkey := make([]byte, 16)
+	n := 0
+	for i, _ := range p {
+		if (ctr.count % 16) == 0 {
+			binary.LittleEndian.PutUint16(plainkey[8:], uint16(ctr.count))
+			ctr.count += 1
+			ctr.block = encrypt(plainkey, ctr.key, make([]byte, 0))[:16]
+		}
+		b := make([]byte, 1)
+		_, err := ctr.reader.Read(b)
+		if err != nil {
+			return n, err
+		}
+		p[i] = ctr.block[i] ^ b[0]
+		n += 1
+	}
+	return n, nil
+}
+
 func c19setup(key []byte) [][]byte {
 	encodedtexts := []string{
 		"SSBoYXZlIG1ldCB0aGVtIGF0IGNsb3NlIG9mIGRheQ==",
@@ -420,17 +448,17 @@ func c19attack(ciphertexts [][]byte) []byte {
 		}
 		key[i] = currentKey
 	}
-	key[26] = ciphertexts[0][26]^byte('f')
-	key[27] = ciphertexts[0][27]^byte(' ')
-	key[28] = ciphertexts[0][28]^byte('d')
-	key[29] = ciphertexts[0][29]^byte('a')
-	key[30] = ciphertexts[0][30]^byte('y')
-	key[31] = ciphertexts[6][31]^byte('d')
-	key[32] = ciphertexts[4][32]^byte('h')
-	key[33] = ciphertexts[4][33]^byte('e')
-	key[34] = ciphertexts[4][34]^byte('a')
-	key[35] = ciphertexts[4][35]^byte('d')
-	key[36] = ciphertexts[37][36]^byte('n')
-	key[37] = ciphertexts[37][37]^byte(',')
+	key[26] = ciphertexts[0][26] ^ byte('f')
+	key[27] = ciphertexts[0][27] ^ byte(' ')
+	key[28] = ciphertexts[0][28] ^ byte('d')
+	key[29] = ciphertexts[0][29] ^ byte('a')
+	key[30] = ciphertexts[0][30] ^ byte('y')
+	key[31] = ciphertexts[6][31] ^ byte('d')
+	key[32] = ciphertexts[4][32] ^ byte('h')
+	key[33] = ciphertexts[4][33] ^ byte('e')
+	key[34] = ciphertexts[4][34] ^ byte('a')
+	key[35] = ciphertexts[4][35] ^ byte('d')
+	key[36] = ciphertexts[37][36] ^ byte('n')
+	key[37] = ciphertexts[37][37] ^ byte(',')
 	return key
 }

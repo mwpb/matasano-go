@@ -1,6 +1,7 @@
-package cryptopals
+package main
 
 import (
+	"io"
 	"math"
 )
 
@@ -127,4 +128,22 @@ func nextRand(rand MTRand) (int, MTRand) {
 	y = temper(y)
 	rand.index += 1
 	return lowestBits(y, wordSize), rand
+}
+
+type mtStreamReader struct {
+	reader io.Reader
+	mtRand MTRand
+}
+
+func (sr *mtStreamReader) Read(p []byte) (int, error) {
+	n, err := sr.reader.Read(p)
+	if err != nil {
+		return n, err
+	}
+	for i, b := range p {
+		var random int
+		random, sr.mtRand = nextRand(sr.mtRand)
+		p[i] = byte(random) ^ b
+	}
+	return n, nil
 }

@@ -1,10 +1,4 @@
-package cryptopals
-
-import (
-	"testing"
-	"time"
-	"log"
-)
+package main
 
 func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte) []byte {
 	n := len(currentBlock)
@@ -212,38 +206,119 @@ func decryptBlock(currentBlock []byte, prevBlock []byte, key [16]byte, iv []byte
 //	}
 //}
 
-func TestS3C23(t *testing.T) {
-	mtRand := MTRand{
-		index: 0,
-		state: mtInit(int(time.Now().Unix())),
-	}
-	allOutputs := make([]int, 624)
-	allOutputs[0], mtRand = nextRand(mtRand)
-	for i := 1; i < 624; i++ {
-		var out int
-		out, mtRand = nextRand(mtRand)
-		allOutputs[i] = out
-	}
-	// attack begins
-	state := make([]int, 624)
-	for i := 0; i < 624; i++ {
-		state[i] = untemper(allOutputs[i])
-	}
-	mtRandClone := MTRand {
-		state: state,
-		index:recurrenceDegree,
-	}
-	for i:=0;i<1000;i++{
-		var out1 int
-		var out2 int
-		out1, mtRand = nextRand(mtRand)
-		out2, mtRandClone = nextRand(mtRandClone)
-		if out1 != out2 {
-			log.Println("Not equal.")
-			log.Println(out1, out2)
-		}
-	}
-	if false {
-		t.Error("failed")
-	}
-}
+//func TestS3C23(t *testing.T) {
+//	mtRand := MTRand{
+//		index: 0,
+//		state: mtInit(int(time.Now().Unix())),
+//	}
+//	allOutputs := make([]int, 624)
+//	allOutputs[0], mtRand = nextRand(mtRand)
+//	for i := 1; i < 624; i++ {
+//		var out int
+//		out, mtRand = nextRand(mtRand)
+//		allOutputs[i] = out
+//	}
+//	// attack begins
+//	state := make([]int, 624)
+//	for i := 0; i < 624; i++ {
+//		state[i] = untemper(allOutputs[i])
+//	}
+//	mtRandClone := MTRand {
+//		state: state,
+//		index:recurrenceDegree,
+//	}
+//	for i:=0;i<1000;i++{
+//		var out1 int
+//		var out2 int
+//		out1, mtRand = nextRand(mtRand)
+//		out2, mtRandClone = nextRand(mtRandClone)
+//		if out1 != out2 {
+//			log.Println("Not equal.")
+//			log.Println(out1, out2)
+//		}
+//	}
+//	if false {
+//		t.Error("failed")
+//	}
+//}
+
+// func TestS3C24Init(t *testing.T) {
+// 	plaintext := make([]byte, 17)
+// 	srReader := mtStreamReader{
+// 		reader: strings.NewReader(string(plaintext)),
+// 		mtRand: MTRand{
+// 			state: mtInit(int(5)),
+// 			index: recurrenceDegree,
+// 		},
+// 	}
+// 	out := make([]byte, 0)
+// 	for {
+// 		b := make([]byte, 1)
+// 		_, err := srReader.Read(b)
+// 		if err != nil {
+// 			break
+// 		}
+// 		out = append(out, b[0])
+// 	}
+// 	srReader2 := mtStreamReader{
+// 		reader: strings.NewReader(string(out)),
+// 		mtRand: MTRand{
+// 			state: mtInit(int(5)),
+// 			index: recurrenceDegree,
+// 		},
+// 	}
+// 	log.Println(out)
+// 	orig := make([]byte, 0)
+// 	for {
+// 		b := make([]byte, 1)
+// 		_, err := srReader2.Read(b)
+// 		if err != nil {
+// 			break
+// 		}
+// 		orig = append(orig, b[0])
+// 	}
+// 	if false {
+// 		t.Error("Failed")
+// 	}
+// }
+
+// func TestS3C24(t *testing.T) {
+// 	plaintext := make([]byte, 14)
+// 	for i, _ := range plaintext {
+// 		plaintext[i] = byte('A')
+// 	}
+// 	preLength, _ := rand.Int(rand.Reader, big.NewInt(20))
+// 	pre := make([]byte, preLength.Int64())
+// 	rand.Read(pre)
+// 	// bit bit number is 0 through 65535
+// 	srReader := mtStreamReader{
+// 		reader: strings.NewReader(string(plaintext)),
+// 		mtRand: MTRand{
+// 			state: mtInit(int(233455)),
+// 			index: recurrenceDegree,
+// 		},
+// 	}
+// 	out := make([]byte, len(plaintext))
+// 	_, err := srReader.Read(out)
+// 	if err != nil {
+// 		log.Println("Error in reading.")
+// 	}
+// 	for i := 0; i < 256; i++ {
+// 		ithSrReader := mtStreamReader{
+// 			reader: strings.NewReader(string(out)),
+// 			mtRand: MTRand{
+// 				state: mtInit(int(i)),
+// 				index: recurrenceDegree,
+// 			},
+// 		}
+// 		orig := make([]byte, len(out))
+// 		ithSrReader.Read(orig)
+// 		if bytes.Equal(orig, plaintext) {
+// 			log.Println(i)
+// 			break
+// 		}
+// 	}
+// 	if false {
+// 		t.Error("Failed")
+// 	}
+// }

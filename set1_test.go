@@ -1,29 +1,68 @@
-package cryptopals
+package main
 
 import (
+	"encoding/hex"
 	"log"
+	"strings"
+	"testing"
 )
 
 func dummy() {
 	log.Println("dummy")
 }
 
-// func TestS1C1(t *testing.T) {
-// 	block, _ := hex.DecodeString("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
-// 	ans := base64.StdEncoding.EncodeToString(block)
-// 	if ans != "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t" {
-// 		t.Errorf("s1c1 failed: output is %v", ans)
-// 	}
-// }
+/*
+Convert hex to base64
 
-// func TestS1C2(t *testing.T) {
-// 	block1, _ := hex.DecodeString("1c0111001f010100061a024b53535009181c")
-// 	block2, _ := hex.DecodeString("686974207468652062756c6c277320657965")
-// 	ans := hex.EncodeToString(xor(block1, block2))
-// 	if ans != "746865206b696420646f6e277420706c6179" {
-// 		t.Errorf("s1c2 failed: output is %v", ans)
-// 	}
-// }
+The string:
+
+49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d
+
+Should produce:
+
+SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t
+
+So go ahead and make that happen. You'll need to use this code for the rest of the exercises.
+Cryptopals Rule
+
+Always operate on raw bytes, never on encoded strings. Only use hex and base64 for pretty-printing.
+*/
+
+func TestC1(t *testing.T) {
+	hexes := strings.NewReader("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
+	plainReader := hex.NewDecoder(hexReader)
+	b64Reader := b64Encoder(plainReader)
+	if readersEqual(b64Reader, strings.NewReader("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t")) == false {
+		t.Errorf("s1c1 failed: output is %v", b64Reader)
+	}
+}
+
+/*
+Fixed XOR
+
+Write a function that takes two equal-length buffers and produces their XOR combination.
+
+If your function works properly, then when you feed it the string:
+
+1c0111001f010100061a024b53535009181c
+
+... after hex decoding, and when XOR'd against:
+
+686974207468652062756c6c277320657965
+
+... should produce:
+
+746865206b696420646f6e277420706c6179
+*/
+
+func TestC2(t *testing.T) {
+	hexes1 := strings.NewReader("1c0111001f010100061a024b53535009181c")
+	hexes2 := strings.NewReader("686974207468652062756c6c277320657965")
+	ans := hex.EncodeToString(xor(block1, block2))
+	if ans != "746865206b696420646f6e277420706c6179" {
+		t.Errorf("s1c2 failed: output is %v", ans)
+	}
+}
 
 // func TestS1C3(t *testing.T) {
 // 	block, _ := hex.DecodeString("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
