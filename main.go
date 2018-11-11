@@ -1,7 +1,12 @@
 package main
 
 import (
+	// "bytes"
 	"encoding/hex"
+	// "fmt"
+	"io"
+	"os"
+	// "log"
 	"strings"
 )
 
@@ -11,6 +16,5 @@ func main() {
 	plains1 := hex.NewDecoder(hexes1)
 	plains2 := hex.NewDecoder(hexes2)
 	xor := xorReader(plains1, plains2)
-	out := hexEncoder(xor)
-	cry(out)
+	io.Copy(os.Stdout, xor)
 }

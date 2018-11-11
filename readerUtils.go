@@ -6,7 +6,7 @@ type readerReader struct {
 	readFunc (func([]byte) (int, error))
 }
 
-func (rr *readerReader) Read(p []byte) (int, error) {
+func (rr readerReader) Read(p []byte) (int, error) {
 	return rr.readFunc(p)
 }
 
@@ -31,5 +31,5 @@ func xorReader(r1 io.Reader, r2 io.Reader) io.Reader {
 		}
 		return n1, nil
 	}
-	return (&readerReader{readFunc: readFunc})
+	return (readerReader{readFunc: readFunc})
 }

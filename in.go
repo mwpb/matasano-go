@@ -3,21 +3,8 @@ package main
 import (
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
 	"io"
 )
-
-func cry(r io.Reader) {
-	for {
-		b := make([]byte, 1)
-		_, err := r.Read(b)
-		if err != nil {
-			break
-		}
-		fmt.Print(string(b[0]))
-	}
-	fmt.Println()
-}
 
 func readersEqual(r io.Reader, s io.Reader) bool {
 	for {
