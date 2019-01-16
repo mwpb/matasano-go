@@ -79,6 +79,13 @@ func pad(original []byte, blockLength int) []byte {
 	return out
 }
 
+func unpad(out []byte) []byte {
+	n := len(out)
+	padding_length := int(out[n-1])
+	unpadded := out[0:n-padding_length]
+	return unpadded
+}
+
 func encrypt(plaintext []byte, key []byte, iv []byte) []byte {
 	plaintext = pad(plaintext, 16)
 	n := len(plaintext)
@@ -191,7 +198,7 @@ func attackBlackBox(blackBox func([]byte) []byte) []byte {
 	cipherlength := len(ciphertext)
 	// log.Println(cipherlength)
 	blocksize, jumpIndex := discoverBlockSize(blackBox)
-	plainlength := cipherlength - (jumpIndex - 1)
+	plainlength := cipherlength - jumpIndex//cipherlength - (jumpIndex - 1)
 	//log.Println(blocksize)
 	//isECB := (encryptionOracle(blackBox) == "ecb")
 	//log.Println(isECB)
@@ -289,7 +296,7 @@ func c16func1(userdata []byte, key [16]byte) []byte {
 
 func c16func2(ciphertext []byte, key [16]byte) bool {
 	plaintext := decrypt(ciphertext, key[:], make([]byte, 16))
-	log.Println(string(plaintext))
+	// log.Println(string(plaintext))
 	containsAdmin := strings.Contains(string(plaintext), ";admin=true;")
 	return containsAdmin
 }
